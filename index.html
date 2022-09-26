@@ -56,13 +56,12 @@ footer {
 <p>Compare the difference between two WhatsApp groups</p>
 <h4 id="usage">Usage</h4>
 <ol>
-<li>Create a new bookmark in your browser, and add the following code as the URL. (Exclude this comment)</li>
-<li>Navigate to the first group and click the bookmark.</li>
-<li>Navigate to the second group and click the bookmark. Open the browser console to see the diff output printed.</li>
+<li>Navigate to the first group, wait until the member information is populated and click the bookmark.</li>
+<li>Navigate to the second group, wait until the member information is populated and click the bookmark.</li>
 </ol>
-<a href='   javascript: void (function () {   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     console.log(`${msg}\n${names}\n${count}`);   };   const elements = document.querySelectorAll("#main span[title]");   const name = elements[0].textContent;   const members = elements[1].textContent.replace(/ /g, "").split(",");   const group = { name, members };    if (!window.firstGroup) {     window.firstGroup = group;     console.log("Captured info for first group");   } else {     const { firstGroup } = window;     delete window.firstGroup;     diff(group, firstGroup);     diff(firstGroup, group);   } })(); '>Whatsapp Diff</a></div>
+<a href='    javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const members = elements[1].textContent.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (!window.firstGroup) {     window.firstGroup = group;     alert(`Captured info for first group\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { firstGroup } = window;     delete window.firstGroup;     diff(group, firstGroup);     diff(firstGroup, group);   } })(); '>Whatsapp Diff</a></div>
         </div>
-        <footer>Last updated: Monday 26 September 2022 11:14:32 PM IST</footer>
+        <footer>Last updated: Monday 26 September 2022 11:39:27 PM IST</footer>
       </div>
     </body>
 </html>
