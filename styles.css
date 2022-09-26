@@ -1,0 +1,41 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+.header {
+    margin: 1em 0;
+}
+
+.bookmarklets {
+    display: flexbox;
+    margin: 2em 0;
+}
+
+.bookmarklets span {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1em;
+}
+
+.bookmarklets a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    border: 1px dashed;
+    margin: 1em 0;
+}
+
+footer {
+    font-size: 0.8em;
+}
