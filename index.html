@@ -17,19 +17,15 @@
         </style>
     </head>
     <body>
-      <header>
-        <h1 class="header">Bookmarklets</h1>
-        <p>Some bookmarklets that I collected over the years</p>
-      </header>
+      <header><h1 id="bookmarklets">Bookmarklets</h1>
+<p>A collection of my bookmarklets to automate various things in the browser</p></header>
       <main>
-        <h4>Installation</h4>
-        <p>
-          <ul>
-             <li>Drag and drop the bookmarklet link to your bookmarks toolbar</li>
-             <li>If your bookmarklet toolbar is hidden, use <kbd>Ctrl+Shift+B</kbd> (on Firefox & Chrome) to make it visible</li>
-             <li>On Firefox, you could also right click on the link and click "Bookmark Link"</li>
-          </ul>
-        <p>
+        <h4 id="installation">Installation</h4>
+<ul>
+<li>Drag and drop the bookmarklet link to your bookmarks toolbar</li>
+<li>If your bookmarklet toolbar is hidden, use <kbd>Ctrl+Shift+B</kbd> (on Firefox &amp; Chrome) to make it visible</li>
+<li>On Firefox, you could also right click on the link and click “Bookmark Link”</li>
+</ul>
         <div class='bookmarklet'><h3 id=better-website>Better Website</h3>
 <p>Use rules from bettermotherfuckingwebsite.com to make websites more readable</p>
 <a class='bml' href=' javascript: void (function () {   var style = document.createElement("style");   document.head.appendChild(style);   var sheet = style.sheet;   sheet.insertRule(     "body{ margin:40px auto; max-width:650px; line-height:1.6; font-size:18px; color:#444; padding:0 10px; }"   );   sheet.insertRule("h1,h2,h3{ line-height:1.2 }"); })(); '>Better Website</a></div><div class='bookmarklet'><h3 id=elfeed-capture>Elfeed Capture</h3>
@@ -62,6 +58,6 @@
 </ol>
 <a class='bml' href='     javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const members = elements[1].textContent.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (!window.groupA) {     window.groupA = group;     alert(`Captured info for group A\nName: ${group.name}\nMembers: ${group.members.length}`);   } else if (!window.groupB) {     window.groupB = group;     alert(`Captured info for group B\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { groupA, groupB } = window;     delete window.groupA;     delete window.groupB;     const combinedGroup = {       name: `${groupA.name} & ${groupB.name}`,       members: groupA.members.concat(groupB),     };     diff(group, combinedGroup);     diff(combinedGroup, group);   } })(); '>Whatsapp Sum Diff</a></div>
       </main>
-      <footer><p>Last updated: Tuesday 27 September 2022 09:28:09 AM IST<p></footer>
+      <footer><p>Last updated: Tuesday 27 September 2022 10:08:57 AM IST<p></footer>
     </body>
 </html>

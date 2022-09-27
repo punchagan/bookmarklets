@@ -21,6 +21,8 @@ bookmarklets () {
 create_index () {
     style=$(cat styles.css)
     title="Bookmarklets"
+    header=$(pandoc README.md | head -n 2)
+    installation=$(pandoc README.md | tail --lines=+4)
     date=$(date)
 
     cat > index.html <<EOF
@@ -35,19 +37,9 @@ create_index () {
         </style>
     </head>
     <body>
-      <header>
-        <h1 class="header">${title}</h1>
-        <p>Some bookmarklets that I collected over the years</p>
-      </header>
+      <header>${header}</header>
       <main>
-        <h4>Installation</h4>
-        <p>
-          <ul>
-             <li>Drag and drop the bookmarklet link to your bookmarks toolbar</li>
-             <li>If your bookmarklet toolbar is hidden, use <kbd>Ctrl+Shift+B</kbd> (on Firefox & Chrome) to make it visible</li>
-             <li>On Firefox, you could also right click on the link and click "Bookmark Link"</li>
-          </ul>
-        <p>
+        ${installation}
         $(bookmarklets)
       </main>
       <footer><p>Last updated: ${date}<p></footer>
