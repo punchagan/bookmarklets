@@ -1,4 +1,4 @@
-// Download Momentum Quotes
+// Save Momentum Quotes as a JSON file
 
 javascript: void (function () {
   if (
