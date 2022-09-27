@@ -11,7 +11,7 @@ bookmarklets () {
         code=$(grep -v "//" "${bookmarklet}" |tr "\n" " ")
         prefix="${bookmarklet/.js/}"
         title=$(echo "${prefix}" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
-        a_tag="<a href='${code}'>${title}</a>"
+        a_tag="<a class='bml' href='${code}'>${title}</a>"
         docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm --id-prefix "${prefix}-")
         printf "<div class='bookmarklet'><h3 id=%s>%s</h3>\n%s\n%s</div>" \
                "${prefix}" "${title}"  "${docs}" "${a_tag}"
