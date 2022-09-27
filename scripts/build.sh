@@ -9,9 +9,10 @@ bookmarklets () {
     for bookmarklet in $bookmarklets;
     do
         code=$(grep -v "//" "${bookmarklet}" |tr "\n" " ")
-        title=$(echo "${bookmarklet}" | sed "s/\..*//g" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
+        prefix="${bookmarklet/.js/}"
+        title=$(echo "${prefix}" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
         a_tag="<a href='${code}'>${title}</a>"
-        docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm)
+        docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm --id-prefix "${prefix}-")
         printf "<div class='bookmarklet'><h3>%s</h3>\n%s\n%s</div>" "${title}"  "${docs}" "${a_tag}"
     done
 }
