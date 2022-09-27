@@ -5,7 +5,7 @@ set -euo pipefail
 HERE=$(dirname $0)
 
 bookmarklets () {
-    bookmarklets=$(ls *.js)
+    bookmarklets=$(git ls-files *.js)
     for bookmarklet in $bookmarklets;
     do
         code=$(grep -v "//" "${bookmarklet}" |tr "\n" " ")
