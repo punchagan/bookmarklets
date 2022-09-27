@@ -5,11 +5,12 @@ set -euo pipefail
 HERE=$(dirname $0)
 
 bookmarklets () {
-    bookmarklets=$(git ls-files *.js | sort -u)
+    bookmarklets=$(git ls-files src/*.js | sort -u)
     for bookmarklet in $bookmarklets;
     do
         code=$(grep -v "//" "${bookmarklet}" |tr "\n" " ")
-        prefix="${bookmarklet/.js/}"
+        suffix="${bookmarklet/.js/}"
+        prefix="${suffix/src\//}"
         title=$(echo "${prefix}" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
         a_tag="<a class='bml' href='${code}'>${title}</a>"
         docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm --id-prefix "${prefix}-")
