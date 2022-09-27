@@ -1,12 +1,12 @@
-// Compare the difference between two WhatsApp groups
+// Compare and find the difference between two WhatsApp groups
 
 // #### Usage
 
 // 1. Navigate to the first group, wait until the member information is
-// populated and click the bookmark.
+// populated (in the group heading) and click the bookmarklet.
 
 // 2. Navigate to the second group, wait until the member information is
-// populated and click the bookmark.
+// populated and click the bookmarklet.
 
 javascript: void (function () {
   const groupInfo = () => {
