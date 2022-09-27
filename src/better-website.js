@@ -1,4 +1,4 @@
-// Use rules from bettermotherfuckingwebsite.com to make websites more readable
+// Use rules from http://bettermotherfuckingwebsite.com to make websites more readable
 
 javascript: void (function () {
   var style = document.createElement("style");
