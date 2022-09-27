@@ -42,7 +42,10 @@ create_index () {
         ${installation}
         $(bookmarklets)
       </main>
-      <footer><p>Last updated: ${date}<p></footer>
+      <footer>
+        <p>Last updated: ${date}<p>
+        <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a><p>
+      </footer>
     </body>
 </html>
 EOF
