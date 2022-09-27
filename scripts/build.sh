@@ -12,7 +12,7 @@ bookmarklets () {
         title=$(echo "${bookmarklet}" | sed "s/\..*//g" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
         a_tag="<a href='${code}'>${title}</a>"
         docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm)
-        printf "<div class='bookmarklet'><h1>%s</h1>\n%s\n%s</div>" "${title}"  "${docs}" "${a_tag}"
+        printf "<div class='bookmarklet'><h3>%s</h3>\n%s\n%s</div>" "${title}"  "${docs}" "${a_tag}"
     done
 }
 
@@ -27,19 +27,20 @@ create_index () {
 <html>
     <head>
         <title>${title}</title>
+        <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
         <style>
          ${style}
         </style>
     </head>
     <body>
-      <div class="content">
+      <header>
         <h1 class="header">${title}</h1>
-        <p>Drag and Drop these bookmarklets into your browser bookmarks bar</p>
-        <div class="bookmarklets">
-          $(bookmarklets)
-        </div>
-        <footer>Last updated: ${date}</footer>
-      </div>
+        <p>Drag and Drop the bookmarklet links into your browser's bookmarks toolbar</p>
+      </header>
+      <main>
+        $(bookmarklets)
+      </main>
+      <footer><p>Last updated: ${date}<p></footer>
     </body>
 </html>
 EOF
