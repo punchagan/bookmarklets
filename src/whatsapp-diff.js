@@ -12,7 +12,11 @@ javascript: void (function () {
   const groupInfo = () => {
     const elements = document.querySelectorAll("#main span[title]");
     const name = elements[0].textContent;
-    const members = elements[1].textContent.replace(/ /g, "").split(",");
+    const subtitle = elements[1].textContent;
+    if (subtitle === "click here for group info") {
+      return { name, members: [] };
+    }
+    const members = subtitle.replace(/ /g, "").split(",");
     return { name, members };
   };
   const diff = function (a, b) {
@@ -27,7 +31,9 @@ javascript: void (function () {
     return;
   }
   const group = groupInfo();
-  if (!window.firstGroup) {
+  if (group.members.length === 0) {
+    alert("Could not get members info. Wait until the member list shows up in the group heading");
+  } else if (!window.firstGroup) {
     window.firstGroup = group;
     alert(`Captured info for first group\nName: ${group.name}\nMembers: ${group.members.length}`);
   } else {
