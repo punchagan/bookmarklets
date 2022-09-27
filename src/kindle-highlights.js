@@ -41,10 +41,8 @@ javascript: void (function () {
   };
 
   const add_download_link = (parent, mimetype) => {
-    const a = $("<a />"),
-      blob,
-      url,
-      name;
+    const a = $("<a />");
+    let blob, url, name;
     if (mimetype == "markdown") {
       a.text("Download Markdown");
       blob = new Blob([highlights_markdown()], { type: "text/markdown" });
