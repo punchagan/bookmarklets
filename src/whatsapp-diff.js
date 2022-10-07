@@ -15,7 +15,10 @@ javascript: void (function () {
     const elements = document.querySelectorAll("#main span[title]");
     const name = elements[0].textContent;
     const subtitle = elements[1].textContent;
-    if (subtitle === "click here for group info") {
+    if (
+      subtitle === "click here for group info" ||
+      subtitle.includes("is typing")
+    ) {
       return { name, members: [] };
     }
     const members = subtitle.replace(/ /g, "").split(",");
