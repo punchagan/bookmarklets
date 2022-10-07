@@ -3,6 +3,8 @@
 
 // #### Usage
 
+// 1. Visit https://web.whatsapp.com/
+
 // 1. Navigate to group A in WhatsApp Web, wait until the member information is
 // populated (in the group heading) and click the bookmarklet.
 
