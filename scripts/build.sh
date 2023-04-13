@@ -28,7 +28,6 @@ create_index () {
 
     cat > index.html <<EOF
 <!DOCTYPE html>
-<meta charset="utf-8">
 <html>
     <head>
         <title>${title}</title>
@@ -36,6 +35,7 @@ create_index () {
         <style>
          ${style}
         </style>
+        <meta charset="utf-8">
     </head>
     <body>
       <header>${header}</header>
