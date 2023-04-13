@@ -27,14 +27,19 @@
 <li>On Firefox, you could also right click on the link and click “Bookmark Link”</li>
 </ul>
         <div class='bookmarklet'><h3 id=better-website>Better Website</h3>
-<p>Use rules from <a href="http://bettermotherfuckingwebsite.com">http://bettermotherfuckingwebsite.com</a> to make websites more readable</p>
+<p>Use rules from <a
+href="http://bettermotherfuckingwebsite.com">http://bettermotherfuckingwebsite.com</a>
+to make websites more readable</p>
 <a class='bml' href=' javascript: void (function () {   var style = document.createElement("style");   document.head.appendChild(style);   var sheet = style.sheet;   sheet.insertRule(     "body{ margin:40px auto; max-width:650px; line-height:1.6; font-size:18px; color:#444; padding:0 10px; }"   );   sheet.insertRule("h1,h2,h3{ line-height:1.2 }"); })(); '>Better Website</a></div><div class='bookmarklet'><h3 id=elfeed-capture>Elfeed Capture</h3>
-<p>Create a new elfeed entry from a website using an org-capture protocol</p>
+<p>Create a new elfeed entry from a website using an org-capture
+protocol</p>
 <a class='bml' href=' javascript: void (function () {   const url_element =     document.querySelector('link[type="application/rss+xml"]') ||     document.querySelector('link[type="application/atom+xml"]') ||     location;   const url = url_element.href;   location.href =     encodeURIComponent(url) +     "/" +     encodeURIComponent(document.title); })(); '>Elfeed Capture</a></div><div class='bookmarklet'><h3 id=kindle-highlights>Kindle Highlights</h3>
-<p>More Readable Kindle Highlights, downloadable as Markdown or Org files</p>
+<p>More Readable Kindle Highlights, downloadable as Markdown or Org
+files</p>
 <h4 id="kindle-highlights-usage">Usage:</h4>
-<ol>
-<li>Visit <a href="https://read.amazon.com/notebook">https://read.amazon.com/notebook</a></li>
+<ol type="1">
+<li>Visit <a
+href="https://read.amazon.com/notebook">https://read.amazon.com/notebook</a></li>
 <li>Navigate to the required book</li>
 <li>Use the bookmarklet</li>
 <li>Profit!</li>
@@ -48,24 +53,33 @@
 <a class='bml' href='  javascript: void (function() {   const getName = () => {     const URLparts = location.pathname.split("/");     const n = URLparts.length - 1;     return URLparts[n] === "roster" ? URLparts[n - 1] : URLparts[n];   };    const data = Array.from(document.querySelectorAll(".media-item-tile"))     .map(x => `"${x.querySelector("h3").textContent}",${x.href}`)     .join("\n");    const blob = new Blob([data], { type: "text/csv" });   const a = document.createElement("a");    a.download = `${getName()}.csv`;   a.href = window.URL.createObjectURL(blob);   a.click(); })(); '>Ultimate Central Roster Save Links</a></div><div class='bookmarklet'><h3 id=whatsapp-diff>Whatsapp Diff</h3>
 <p>Compare and find the difference between two WhatsApp groups</p>
 <h4 id="whatsapp-diff-usage">Usage</h4>
-<ol>
-<li>Visit <a href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
-<li>Navigate to the first group, wait until the member information is populated (in the group heading) and click the bookmarklet.</li>
-<li>Navigate to the second group, wait until the member information is populated and click the bookmarklet.</li>
+<ol type="1">
+<li>Visit <a
+href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
+<li>Navigate to the first group, wait until the member information is
+populated (in the group heading) and click the bookmarklet.</li>
+<li>Navigate to the second group, wait until the member information is
+populated and click the bookmarklet.</li>
 </ol>
 <a class='bml' href='     javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const subtitle = elements[1].textContent;     if (       subtitle === "click here for group info" ||       subtitle.includes("is typing")     ) {       return { name, members: [] };     }     const members = subtitle.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (group.members.length === 0) {     alert("Could not get members info. Wait until the member list shows up in the group heading");   } else if (!window.firstGroup) {     window.firstGroup = group;     alert(`Captured info for first group\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { firstGroup } = window;     delete window.firstGroup;     diff(group, firstGroup);     diff(firstGroup, group);   } })(); '>Whatsapp Diff</a></div><div class='bookmarklet'><h3 id=whatsapp-sum-diff>Whatsapp Sum Diff</h3>
-<p>Find the difference between combination of two groups (A &amp; B) and another group (C)</p>
+<p>Find the difference between combination of two groups (A &amp; B) and
+another group (C)</p>
 <h4 id="whatsapp-sum-diff-usage">Usage</h4>
-<ol>
-<li>Visit <a href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
-<li>Navigate to group A in WhatsApp Web, wait until the member information is populated (in the group heading) and click the bookmarklet.</li>
-<li>Navigate to group B, wait until the member information is populated (in the group heading) and click the bookmarklet.</li>
-<li>Finally, Navigate to group C, wait until the member information is populated and click the bookmarklet.</li>
+<ol type="1">
+<li>Visit <a
+href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
+<li>Navigate to group A in WhatsApp Web, wait until the member
+information is populated (in the group heading) and click the
+bookmarklet.</li>
+<li>Navigate to group B, wait until the member information is populated
+(in the group heading) and click the bookmarklet.</li>
+<li>Finally, Navigate to group C, wait until the member information is
+populated and click the bookmarklet.</li>
 </ol>
 <a class='bml' href='      javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const subtitle = elements[1].textContent;     if (       subtitle === "click here for group info" ||       subtitle.includes("is typing")     ) {       return { name, members: [] };     }     const members = subtitle.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (group.members.length === 0) {     alert("Could not get members info. Wait until the member list shows up in the group heading");   } else if (!window.groupA) {     window.groupA = group;     alert(`Captured info for group A\nName: ${group.name}\nMembers: ${group.members.length}`);   } else if (!window.groupB) {     window.groupB = group;     alert(`Captured info for group B\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { groupA, groupB } = window;     delete window.groupA;     delete window.groupB;     const combinedGroup = {       name: `${groupA.name} & ${groupB.name}`,       members: groupA.members.concat(groupB),     };     diff(group, combinedGroup);     diff(combinedGroup, group);   } })(); '>Whatsapp Sum Diff</a></div>
       </main>
       <footer>
-        <p>Last updated: Friday 07 October 2022 10:12:39 AM IST<p>
+        <p>Last updated: Friday 14 April 2023 02:14:48 AM IST<p>
         <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a><p>
       </footer>
     </body>
