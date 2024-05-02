@@ -41,7 +41,9 @@ create_index () {
     <body>
       <header>${header}</header>
       <main>
-        ${installation}
+        <div class="notice">
+          ${installation}
+        </div>
         $(bookmarklets)
       </main>
       <footer>
