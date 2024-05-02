@@ -22,8 +22,9 @@ bookmarklets () {
 create_index () {
     style=$(cat styles.css)
     title="Bookmarklets"
-    header=$(pandoc README.md --wrap=none | head -n 2)
-    installation=$(pandoc README.md --wrap=none | tail --lines=+4)
+    readme=$(pandoc README.md --wrap=none)
+    header=$(echo "${readme}" | head -n 2)
+    installation=$(echo "${readme}" | tail --lines=+4)
     date=$(date)
 
     cat > index.html <<EOF
