@@ -4,6 +4,8 @@ set -euo pipefail
 
 HERE=$(dirname $0)
 
+REPO_URL="https://github.com/punchagan/bookmarklets"
+
 bookmarklets () {
     bookmarklets=$(git ls-files src/*.js | sort -u)
     for bookmarklet in $bookmarklets;
@@ -14,8 +16,10 @@ bookmarklets () {
         title=$(echo "${prefix}" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
         a_tag="<a class='bml' href='${code}'>${title}</a>"
         docs=$(grep "^//" "${bookmarklet}" | sed "s#// ##g"|pandoc -f gfm --id-prefix "${prefix}-")
-        printf "<div class='bookmarklet'><h3 id=%s>%s</h3>\n%s\n%s</div>" \
-               "${prefix}" "${title}"  "${docs}" "${a_tag}"
+        gh_url="${REPO_URL}/tree/main/${bookmarklet}"
+        source="<a href=\"${gh_url}\"><small>Source</small></a>"
+        printf "<div class='bookmarklet'><h3 id=%s>%s</h3>\n%s\n%s\n%s</div>" \
+            "${prefix}" "${title}" "${docs}" "${a_tag}" "${source}"
     done
 }
 
@@ -48,7 +52,7 @@ create_index () {
       </main>
       <footer>
         <p>Last updated: ${date}<p>
-        <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a><p>
+        <p>Source: <a href="${REPO_URL}">GitHub</a><p>
       </footer>
     </body>
 </html>
