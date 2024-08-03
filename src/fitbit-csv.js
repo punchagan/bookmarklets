@@ -1,9 +1,7 @@
-// Fetch the data used in the Fitbit Dashboard graphs as a CSV
+// Fetch the data used in the Fitbit Dashboard graphs as a CSV.
 
-// 1. [Login](https://fitbit.com/login) to your Fitbit account
-// 2. Navigate to the [Activities Dashboard](https://www.fitbit.com/activities)
-// 3. Use the bookmarklet
-// 4. Profit!
+// The bookmarklet is no longer functional since Fitbit removed the [Activities
+// Dashboard](https://support.google.com/fitbit?p=dashboard-app)
 
 javascript: void (async function () {
   const getDatesBetween = (startDate, endDate) => {
