@@ -10,7 +10,7 @@ bookmarklets () {
     bookmarklets=$(git ls-files src/*.js | sort -u)
     for bookmarklet in $bookmarklets;
     do
-        code=$(grep -v "^\s*//" "${bookmarklet}" |tr "\n" " ")
+        code=$(grep -v "^\s*//" "${bookmarklet}" | tr "\n" " " | sed "s/'/\\&#39;/g")
         suffix="${bookmarklet/.js/}"
         prefix="${suffix/src\//}"
         title=$(echo "${prefix}" | sed 's/[^ _-]*/\u&/g' | tr "-" " ")
