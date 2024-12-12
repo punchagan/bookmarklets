@@ -250,35 +250,35 @@ all participants.</li>
 </ol>
 
    <a class="bml"
-    href="javascript: (async () =&gt; {
-  const sendEnter = async (element) =&gt; {
-    const enterEvent = new KeyboardEvent(&quot;keydown&quot;, {
-      bubbles: true,
-      cancelable: true,
-      key: &quot;Enter&quot;,
-      code: &quot;Enter&quot;,
-    });
-    element.dispatchEvent(enterEvent);
-    await new Promise(function (r) {
-      setTimeout(r, 2000);
-    });
-  };
+    href="javascript:(async () =&gt; {
+const sendEnter = async (element) =&gt; {
+  const enterEvent = new KeyboardEvent(&quot;keydown&quot;, {
+    bubbles: true,
+    cancelable: true,
+    key: &quot;Enter&quot;,
+    code: &quot;Enter&quot;,
+  });
+  element.dispatchEvent(enterEvent);
+  await new Promise(function (r) {
+    setTimeout(r, 2000);
+  });
+};
 
-  const sendMessage = async (santaId, santa, kiddo) =&gt; {
-    console.log(`Sending message to ${santa}!!`);
-    const searchBox = document.querySelector(
-      &quot;div[contenteditable='true'][data-tab='3']&quot;,
-    );
-    searchBox.focus();
-    document.execCommand(&quot;insertText&quot;, false, santaId);
-    await new Promise(function (r) {
-      setTimeout(r, 5000);
-    });
-    await sendEnter(searchBox);
+const sendMessage = async (santaId, santa, kiddo) =&gt; {
+  console.log(`Sending message to ${santa}!!`);
+  const searchBox = document.querySelector(
+    &quot;div[contenteditable='true'][data-tab='3']&quot;,
+  );
+  searchBox.focus();
+  document.execCommand(&quot;insertText&quot;, false, santaId);
+  await new Promise(function (r) {
+    setTimeout(r, 5000);
+  });
+  await sendEnter(searchBox);
 
-    const filler = `🎁 ${&quot; &quot;.repeat(50)} 🎁\n`;
+  const filler = `🎁 ${&quot; &quot;.repeat(50)} 🎁\n`;
 
-    const message = `Hi *${santa}*,\n\n\nYou are the Secret Santa for ...\n
+  const message = `Hi *${santa}*,\n\n\nYou are the Secret Santa for ...\n
 ${filler.repeat(10)}
  🔽${&quot; &quot;.repeat(15)} Scroll down ${&quot; &quot;.repeat(15)}🔽\n
 ${filler.repeat(10)}\n\n
@@ -286,69 +286,85 @@ ${filler.repeat(10)}\n\n
 🎅🎁 Please keep it a secret and make it special!\n\n
 Powered by Rudolph, a Bookmarklet: https://punchagan.github.io/bookmarklets/#rudolph`;
 
-    document.execCommand(&quot;insertText&quot;, false, message);
-    await new Promise(function (r) {
-      setTimeout(r, 500);
-    });
-    const sendButton = document.querySelector(&quot;button[aria-label='Send']&quot;);
-    sendButton.click();
-    await new Promise(function (r) {
-      setTimeout(r, 500);
-    });
-    document.querySelector('#main div[title=&quot;Menu&quot;]')?.click();
-    await new Promise(function (r) {
-      setTimeout(r, 200);
-    });
-    document.querySelector('div[aria-label=&quot;Close chat&quot;]')?.click();
-    await new Promise(function (r) {
-      setTimeout(r, 200);
-    });
-    document.querySelector('div[aria-label=&quot;Back&quot;]')?.click();
-    document.querySelector(&quot;#side&quot;)?.click();
-  };
+  document.execCommand(&quot;insertText&quot;, false, message);
+  await new Promise(function (r) {
+    setTimeout(r, 500);
+  });
+  const sendButton = document.querySelector(&quot;button[aria-label='Send']&quot;);
+  sendButton.click();
+  await new Promise(function (r) {
+    setTimeout(r, 500);
+  });
+  document.querySelector('#main div[title=&quot;Menu&quot;]')?.click();
+  await new Promise(function (r) {
+    setTimeout(r, 200);
+  });
+  document.querySelector('div[aria-label=&quot;Close chat&quot;]')?.click();
+  await new Promise(function (r) {
+    setTimeout(r, 200);
+  });
+  document.querySelector('div[aria-label=&quot;Back&quot;]')?.click();
+  document.querySelector(&quot;#side&quot;)?.click();
+};
 
-  const fetchParticipants = async () =&gt; {
-    const sheetId = prompt(
-      &quot;Enter the Google Spreadsheet ID containing participants:&quot;,
+const fetchParticipants = async () =&gt; {
+  const sheetId = prompt(
+    &quot;Enter the Google Spreadsheet ID containing participants:&quot;,
+  );
+  if (!sheetId) return alert(&quot;No spreadsheet ID provided.&quot;);
+  console.log(`Sheet: ${sheetId}`);
+  const url = `https://opensheet.elk.sh/${sheetId}/participants`;
+  let participants;
+  try {
+    const response = await fetch(url);
+    participants = await response.json();
+  } catch (error) {
+    return alert(
+      &quot;Failed to fetch participant data. Ensure the spreadsheet ID is correct.&quot;,
     );
-    if (!sheetId) return alert(&quot;No spreadsheet ID provided.&quot;);
-    console.log(`Sheet: ${sheetId}`);
-    const url = `https://opensheet.elk.sh/${sheetId}/participants`;
-    let participants;
+  }
+
+  if (!participants || participants.length &lt; 2) {
+    return alert(
+      &quot;Not enough participants found. Ensure the spreadsheet has at least two participants.&quot;,
+    );
+  }
+  const clipboardButton = document.createElement(&quot;button&quot;);
+  clipboardButton.textContent = &quot;Copy Participants to Clipboard&quot;;
+  clipboardButton.style.position = &quot;fixed&quot;;
+  clipboardButton.style.top = &quot;10px&quot;;
+  clipboardButton.style.right = &quot;10px&quot;;
+  clipboardButton.style.zIndex = &quot;1000&quot;;
+  clipboardButton.addEventListener(&quot;click&quot;, async () =&gt; {
     try {
-      const response = await fetch(url);
-      participants = await response.json();
-    } catch (error) {
-      return alert(
-        &quot;Failed to fetch participant data. Ensure the spreadsheet ID is correct.&quot;,
+      await navigator.clipboard.writeText(JSON.stringify(participants));
+      alert(
+        &quot;Participants copied to clipboard. Open WhatsApp Web and run the script again.&quot;,
       );
+    } catch (err) {
+      alert(`Failed to copy to clipboard: ${err.message}`);
     }
+    document.body.removeChild(clipboardButton);
+  });
+  document.body.appendChild(clipboardButton);
+};
 
-    if (!participants || participants.length &lt; 2) {
-      return alert(
-        &quot;Not enough participants found. Ensure the spreadsheet has at least two participants.&quot;,
-      );
-    }
-    const clipboardButton = document.createElement(&quot;button&quot;);
-    clipboardButton.textContent = &quot;Copy Participants to Clipboard&quot;;
-    clipboardButton.style.position = &quot;fixed&quot;;
-    clipboardButton.style.top = &quot;10px&quot;;
-    clipboardButton.style.right = &quot;10px&quot;;
-    clipboardButton.style.zIndex = &quot;1000&quot;;
-    clipboardButton.addEventListener(&quot;click&quot;, async () =&gt; {
-      try {
-        await navigator.clipboard.writeText(JSON.stringify(participants));
-        alert(
-          &quot;Participants copied to clipboard. Open WhatsApp Web and run the script again.&quot;,
-        );
-      } catch (err) {
-        alert(`Failed to copy to clipboard: ${err.message}`);
-      }
-      document.body.removeChild(clipboardButton);
-    });
-    document.body.appendChild(clipboardButton);
-  };
+const generateAssignments = async (participants) =&gt; {
+  let shuffled = [...participants].sort();
+  for (let i = 0; i &lt; participants.length * 50; i++) {
+    shuffled = [...shuffled].sort(() =&gt; Math.random() - 0.5);
+  }
+  const assignments = shuffled.map((participant, i) =&gt; {
+    return {
+      santa: participant[&quot;Name&quot;],
+      santaId: participant[&quot;WhatsApp Name&quot;],
+      kiddo: shuffled[(i + 1) % shuffled.length][&quot;Name&quot;],
+    };
+  });
+  return assignments.sort(() =&gt; Math.random() - 0.5);
+};
 
+const main = async () =&gt; {
   if (!window.location.href.includes(&quot;web.whatsapp.com&quot;)) {
     await fetchParticipants();
   } else {
@@ -356,18 +372,7 @@ Powered by Rudolph, a Bookmarklet: https://punchagan.github.io/bookmarklets/#rud
       &quot;Enter the assignments after fetching them on a different tab; WhatsApp Web tab doesn't allow fetching data.&quot;,
     );
     const participants = JSON.parse(participantsJSON);
-    let shuffled = [...participants].sort();
-    for (let i = 0; i &lt; participants.length * 50; i++) {
-      shuffled = [...shuffled].sort(() =&gt; Math.random() - 0.5);
-    }
-    const assignments = shuffled.map((participant, i) =&gt; {
-      return {
-        santa: participant[&quot;Name&quot;],
-        santaId: participant[&quot;WhatsApp Name&quot;],
-        kiddo: shuffled[(i + 1) % shuffled.length][&quot;Name&quot;],
-      };
-    });
-    const shuffledAssignments = assignments.sort(() =&gt; Math.random() - 0.5);
+    const shuffledAssignments = generateAssignments(participants);
     for (const assignment of shuffledAssignments) {
       await sendMessage(assignment.santaId, assignment.santa, assignment.kiddo);
       await new Promise(function (r) {
@@ -375,7 +380,8 @@ Powered by Rudolph, a Bookmarklet: https://punchagan.github.io/bookmarklets/#rud
       });
     }
   }
-})();"
+};
+main()})();"
     >Rudolph
    </a>
   </div>
@@ -576,7 +582,7 @@ populated and click the bookmarklet.</p>
     >Whatsapp Sum Diff
    </a>
   </div>
-  <footer><p>Last updated: 2024-12-12T15:25:30-00:00</p>
+  <footer><p>Last updated: 2024-12-12T17:23:34-00:00</p>
    <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a>
    </p>
   </footer>

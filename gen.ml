@@ -12,6 +12,10 @@ let to_title name =
   |> List.map String.capitalize_ascii
   |> String.concat " "
 
+let wrap_code code =
+  if code |> String.starts_with ~prefix:"javascript:" then code
+  else Printf.sprintf "javascript:(async () => {\n%s\nmain()})();" code
+
 let process_bookmarklet ~src_dir filename =
   let path = src_dir / filename in
   let title = to_title filename in
@@ -22,7 +26,7 @@ let process_bookmarklet ~src_dir filename =
            (* FIXME: It would be nice to remove comments at the end of lines,
               since they break the page generation *)
            line |> String.trim |> String.starts_with ~prefix:"//" |> not)
-    |> String.concat "\n" |> String.trim
+    |> String.concat "\n" |> String.trim |> wrap_code
   in
   let doc_md =
     let non_doc_idx =
