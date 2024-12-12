@@ -7,5 +7,5 @@ You can view them at [punchagan.github.io/bookmarklets](https://punchagan.github
 #### Installation
 
 - Drag and drop the bookmarklet link to your bookmarks toolbar
-- If your bookmarklet toolbar is hidden, use <kbd>Ctrl+Shift+B</kbd> (on Firefox & Chrome) to make it visible
+- If your bookmarklet toolbar is hidden, use `Ctrl+Shift+B` (on Firefox & Chrome) to make it visible
 - On Firefox, you could also right click on the link and click "Bookmark Link"

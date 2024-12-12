@@ -1,116 +1,584 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Bookmarklets</title>
-        <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-        <style>
-         .bml {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50px;
-    border: 1px dashed;
-    margin: 1em 0;
-}
-        </style>
-        <meta charset="utf-8">
-    </head>
-    <body>
-      <header><h1 id="bookmarklets">Bookmarklets</h1>
-<p>A collection of my bookmarklets to automate various things in the browser</p></header>
-      <main>
-        <div class="notice">
-          <h4 id="installation">Installation</h4>
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <head><title>Bookmarklets</title>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"/>
+  <style>
+   
+           .bml {
+               display: flex;
+               flex-direction: column;
+               align-items: center;
+               justify-content: center;
+               min-height: 50px;
+               border: 1px dashed;
+               margin: 1em 0;
+           }
+         
+  </style><meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ </head>
+ <body><header><h1 id="bookmarklets">Bookmarklets</h1></header>
+  <p>A collection of my bookmarklets to automate various things in the browser</p>
+<h4>Installation</h4>
 <ul>
 <li>Drag and drop the bookmarklet link to your bookmarks toolbar</li>
-<li>If your bookmarklet toolbar is hidden, use <kbd>Ctrl+Shift+B</kbd> (on Firefox &amp; Chrome) to make it visible</li>
-<li>On Firefox, you could also right click on the link and click “Bookmark Link”</li>
+<li>If your bookmarklet toolbar is hidden, use <code>Ctrl+Shift+B</code> (on Firefox &amp; Chrome) to make it visible</li>
+<li>On Firefox, you could also right click on the link and click &quot;Bookmark Link&quot;</li>
 </ul>
-        </div>
-        <div class='bookmarklet'><h3 id=better-website>Better Website</h3>
-<p>Use rules from <a
-href="http://bettermotherfuckingwebsite.com">http://bettermotherfuckingwebsite.com</a>
-to make websites more readable</p>
-<a class='bml' href=' javascript: void (function () {   var style = document.createElement("style");   document.head.appendChild(style);   var sheet = style.sheet;   sheet.insertRule(     "body{ margin:40px auto; max-width:650px; line-height:1.6; font-size:18px; color:#444; padding:0 10px; }"   );   sheet.insertRule("h1,h2,h3{ line-height:1.2 }"); })(); '>Better Website</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/better-website.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=elfeed-capture>Elfeed Capture</h3>
-<p>Create a new elfeed entry from a website using an org-capture
-protocol</p>
-<a class='bml' href=' javascript: void (function () {   const url_element =     document.querySelector(&#39;link[type="application/rss+xml"]&#39;) ||     document.querySelector(&#39;link[type="application/atom+xml"]&#39;) ||     location;   const url = url_element.href;   location.href =     "org-protocol://capture://L/" +     encodeURIComponent(url) +     "/" +     encodeURIComponent(document.title); })(); '>Elfeed Capture</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/elfeed-capture.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=fitbit-csv>Fitbit Csv</h3>
-<p>Fetch the data used in the Fitbit Dashboard graphs as a CSV. The
-bookmarklet is no longer functional since Fitbit removed the <a
-href="https://support.google.com/fitbit?p=dashboard-app">Activities
+
+  <div class="bookmarklet"><h3 id="better-website">Better Website</h3>
+   <p>Use rules from http://bettermotherfuckingwebsite.com to make websites more readable</p>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  var style = document.createElement(&quot;style&quot;);
+  document.head.appendChild(style);
+  var sheet = style.sheet;
+  sheet.insertRule(
+    &quot;body{ margin:40px auto; max-width:650px; line-height:1.6; font-size:18px; color:#444; padding:0 10px; }&quot;
+  );
+  sheet.insertRule(&quot;h1,h2,h3{ line-height:1.2 }&quot;);
+})();"
+    >Better Website
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="elfeed-capture">Elfeed Capture</h3>
+   <p>Create a new elfeed entry from a website using an org-capture protocol</p>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  const url_element =
+    document.querySelector('link[type=&quot;application/rss+xml&quot;]') ||
+    document.querySelector('link[type=&quot;application/atom+xml&quot;]') ||
+    location;
+  const url = url_element.href;
+  location.href =
+    &quot;org-protocol://capture://L/&quot; +
+    encodeURIComponent(url) +
+    &quot;/&quot; +
+    encodeURIComponent(document.title);
+})();"
+    >Elfeed Capture
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="fitbit-csv">Fitbit Csv</h3>
+   <p>Fetch the data used in the Fitbit Dashboard graphs as a CSV.</p>
+<p>The bookmarklet is no longer functional since Fitbit removed the <a href="https://support.google.com/fitbit?p=dashboard-app">Activities
 Dashboard</a></p>
-<a class='bml' href='  javascript: void (async function () {   const getDatesBetween = (startDate, endDate) => {     const dateArray = [];     let currentDate = new Date(startDate);     const end = new Date(endDate);      while (currentDate <= end) {       dateArray.push(currentDate.toISOString().split("T")[0]);       currentDate.setDate(currentDate.getDate() + 1);     }      return dateArray;   };    const fetchDataByDay = async (date) => {     const ts = new Date().getTime();     const url = `${baseUrl}?userId=${userId}&dateFrom=${date}&dateTo=${date}&ts=${ts}&type=intradaySteps&dataVersion=3&apiFormat=json`;     const response = await fetch(url, {       credentials: "include",       headers: {         "User-Agent":           "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0",         Accept: "*/*",         "Accept-Language": "en-US,en;q=0.5",         "X-Requested-With": "XMLHttpRequest",         "Sec-Fetch-Dest": "empty",         "Sec-Fetch-Mode": "cors",         "Sec-Fetch-Site": "same-origin",       },       referrer: "https://www.fitbit.com/activities",       method: "GET",       mode: "cors",     });     const data = await response.json();     return data?.graph?.dataSets?.activity?.dataPoints;   };    const downloadCSV = (dataArray, name) => {     const csvContent = dataArray       .map((item, index) => {         const values = Object.values(item);         return (           (index === 0 ? Object.keys(item).join(",") + "\n" : "") +           values.join(",")         );       })       .join("\n");      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });      const url = URL.createObjectURL(blob);     const link = document.createElement("a");     link.setAttribute("href", url);     link.setAttribute("download", name);     link.style.visibility = "hidden";     document.body.appendChild(link);     link.click();     document.body.removeChild(link);   };    const userId = document.querySelector("body.fb-body").dataset.userId;   const userName =     document.querySelector("body.fb-body")?.dataset?.userName || "user";   const startDate = window.prompt("Enter START date (YYYY-mm-dd)");   const endDate = window.prompt("Enter END date (YYYY-mm-dd)");   const baseUrl = "https://www.fitbit.com/graph/getNewGraphData";   const dates = getDatesBetween(startDate, endDate);    window.alert(`Fetching data from ${startDate} to ${endDate} for ${userName}`);   const results = Array.flatten(     await Promise.all(dates.map((d) => fetchDataByDay(d))),   );   const cleanedName = userName.replaceAll(" ", "-").replace(".", "");   const csvName = `${cleanedName}-${startDate}.csv`;   console.log(results);   downloadCSV(results, csvName); })(); '>Fitbit Csv</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/fitbit-csv.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=kindle-highlights>Kindle Highlights</h3>
-<p>More Readable Kindle Highlights, downloadable as Markdown or Org
-files</p>
-<h4 id="kindle-highlights-usage">Usage:</h4>
-<ol type="1">
-<li>Visit <a
-href="https://read.amazon.com/notebook">https://read.amazon.com/notebook</a></li>
+
+   <a class="bml"
+    href="javascript: void (async function () {
+  const getDatesBetween = (startDate, endDate) =&gt; {
+    const dateArray = [];
+    let currentDate = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (currentDate &lt;= end) {
+      dateArray.push(currentDate.toISOString().split(&quot;T&quot;)[0]);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dateArray;
+  };
+
+  const fetchDataByDay = async (date) =&gt; {
+    const ts = new Date().getTime();
+    const url = `${baseUrl}?userId=${userId}&amp;dateFrom=${date}&amp;dateTo=${date}&amp;ts=${ts}&amp;type=intradaySteps&amp;dataVersion=3&amp;apiFormat=json`;
+    const response = await fetch(url, {
+      credentials: &quot;include&quot;,
+      headers: {
+        &quot;User-Agent&quot;:
+          &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0&quot;,
+        Accept: &quot;*/*&quot;,
+        &quot;Accept-Language&quot;: &quot;en-US,en;q=0.5&quot;,
+        &quot;X-Requested-With&quot;: &quot;XMLHttpRequest&quot;,
+        &quot;Sec-Fetch-Dest&quot;: &quot;empty&quot;,
+        &quot;Sec-Fetch-Mode&quot;: &quot;cors&quot;,
+        &quot;Sec-Fetch-Site&quot;: &quot;same-origin&quot;,
+      },
+      referrer: &quot;https://www.fitbit.com/activities&quot;,
+      method: &quot;GET&quot;,
+      mode: &quot;cors&quot;,
+    });
+    const data = await response.json();
+    return data?.graph?.dataSets?.activity?.dataPoints;
+  };
+
+  const downloadCSV = (dataArray, name) =&gt; {
+    const csvContent = dataArray
+      .map((item, index) =&gt; {
+        const values = Object.values(item);
+        return (
+          (index === 0 ? Object.keys(item).join(&quot;,&quot;) + &quot;\n&quot; : &quot;&quot;) +
+          values.join(&quot;,&quot;)
+        );
+      })
+      .join(&quot;\n&quot;);
+
+    const blob = new Blob([csvContent], { type: &quot;text/csv;charset=utf-8;&quot; });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement(&quot;a&quot;);
+    link.setAttribute(&quot;href&quot;, url);
+    link.setAttribute(&quot;download&quot;, name);
+    link.style.visibility = &quot;hidden&quot;;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const userId = document.querySelector(&quot;body.fb-body&quot;).dataset.userId;
+  const userName =
+    document.querySelector(&quot;body.fb-body&quot;)?.dataset?.userName || &quot;user&quot;;
+  const startDate = window.prompt(&quot;Enter START date (YYYY-mm-dd)&quot;);
+  const endDate = window.prompt(&quot;Enter END date (YYYY-mm-dd)&quot;);
+  const baseUrl = &quot;https://www.fitbit.com/graph/getNewGraphData&quot;;
+  const dates = getDatesBetween(startDate, endDate);
+
+  window.alert(`Fetching data from ${startDate} to ${endDate} for ${userName}`);
+  const results = Array.flatten(
+    await Promise.all(dates.map((d) =&gt; fetchDataByDay(d))),
+  );
+  const cleanedName = userName.replaceAll(&quot; &quot;, &quot;-&quot;).replace(&quot;.&quot;, &quot;&quot;);
+  const csvName = `${cleanedName}-${startDate}.csv`;
+  console.log(results);
+  downloadCSV(results, csvName);
+})();"
+    >Fitbit Csv
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="kindle-highlights">Kindle Highlights</h3>
+   <p>More Readable Kindle Highlights, downloadable as Markdown or Org files</p>
+<h4>Usage:</h4>
+<ol>
+<li>Visit https://read.amazon.com/notebook</li>
 <li>Navigate to the required book</li>
 <li>Use the bookmarklet</li>
 <li>Profit!</li>
 </ol>
-<a class='bml' href='   javascript: void (function () {   const highlights_markdown = () => {     const markdown = "";     for (let i = 0; i < highlights.length; i++) {       markdown += "> " + highlights[i] + "\n\n";       const note = notes[i];       if (note !== "") {         markdown += note + "\n\n";       }     }     return markdown;   };    const highlights_orgmode = () => {     const orgmode = "";     for (let i = 0; i < highlights.length; i++) {       orgmode += "#+BEGIN_QUOTE\n";       orgmode += highlights[i] + "\n";       orgmode += "#+END_QUOTE\n\n";       const note = notes[i];       if (note !== "") {         orgmode += note + "\n\n";       }     }     return orgmode;   };    const add_download_links = () => {     const parent = $(".kp-notebook-bookcover-container").parent();     add_download_link(parent, "markdown");     add_download_link(parent, "x-org");   };    const add_download_link = (parent, mimetype) => {     const a = $("<a />");     let blob, url, name;     if (mimetype == "markdown") {       a.text("Download Markdown");       blob = new Blob([highlights_markdown()], { type: "text/markdown" });       name = "kindle-highlights.md";     } else if (mimetype == "x-org") {       a.text("Download Org-Mode");       blob = new Blob([highlights_orgmode()], { type: "text/markdown" });       name = "kindle-highlights.org";     }     url = window.URL.createObjectURL(blob);     a.addClass("a-row").appendTo(parent).attr("href", url).attr("download", name);   };    const make_readable = () => {     $("#library").hide();     $(".kp-notebook-metadata").hide();     $("h3.kp-notebook-metadata").show().parent().toggleClass("a-span5");     $(".kp-notebook-bookcover-container").hide();     $(".a-declarative").hide();     $(".kp-notebook-row-separator").css("border-bottom", "none");     $("#annotations").css("float", "none").css("max-width", "800px").css("margin", "auto");     $(".a-scroller").css("overflow", "inherit");     $(".a-size-small").hide();   };    make_readable();   const highlights = $(".kp-notebook-row-separator")     .find("#highlight")     .map(function (idx, x) {       return $(x).text();     });   const notes = $(".kp-notebook-row-separator")     .find("#note")     .map(function (idx, x) {       return $(x).text();     });   add_download_links(); })(); '>Kindle Highlights</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/kindle-highlights.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=rudolph>Rudolph</h3>
-<p>Rudolph helps organize Secret Santa ...</p>
-<ol type="1">
-<li>Setup a Google spreadsheet with "Name" &amp; "Whatsapp Name" columns
-with all participants. The sheet name should be participants. Make the
-sheet downloadable by everyone with URL.</li>
-<li>In any tab, maybe the bookmarklets site tab, run the bookmarklet to
-fetch all participants.</li>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  const highlights_markdown = () =&gt; {
+    const markdown = &quot;&quot;;
+    for (let i = 0; i &lt; highlights.length; i++) {
+      markdown += &quot;&gt; &quot; + highlights[i] + &quot;\n\n&quot;;
+      const note = notes[i];
+      if (note !== &quot;&quot;) {
+        markdown += note + &quot;\n\n&quot;;
+      }
+    }
+    return markdown;
+  };
+
+  const highlights_orgmode = () =&gt; {
+    const orgmode = &quot;&quot;;
+    for (let i = 0; i &lt; highlights.length; i++) {
+      orgmode += &quot;#+BEGIN_QUOTE\n&quot;;
+      orgmode += highlights[i] + &quot;\n&quot;;
+      orgmode += &quot;#+END_QUOTE\n\n&quot;;
+      const note = notes[i];
+      if (note !== &quot;&quot;) {
+        orgmode += note + &quot;\n\n&quot;;
+      }
+    }
+    return orgmode;
+  };
+
+  const add_download_links = () =&gt; {
+    const parent = $(&quot;.kp-notebook-bookcover-container&quot;).parent();
+    add_download_link(parent, &quot;markdown&quot;);
+    add_download_link(parent, &quot;x-org&quot;);
+  };
+
+  const add_download_link = (parent, mimetype) =&gt; {
+    const a = $(&quot;&lt;a /&gt;&quot;);
+    let blob, url, name;
+    if (mimetype == &quot;markdown&quot;) {
+      a.text(&quot;Download Markdown&quot;);
+      blob = new Blob([highlights_markdown()], { type: &quot;text/markdown&quot; });
+      name = &quot;kindle-highlights.md&quot;;
+    } else if (mimetype == &quot;x-org&quot;) {
+      a.text(&quot;Download Org-Mode&quot;);
+      blob = new Blob([highlights_orgmode()], { type: &quot;text/markdown&quot; });
+      name = &quot;kindle-highlights.org&quot;;
+    }
+    url = window.URL.createObjectURL(blob);
+    a.addClass(&quot;a-row&quot;).appendTo(parent).attr(&quot;href&quot;, url).attr(&quot;download&quot;, name);
+  };
+
+  const make_readable = () =&gt; {
+    $(&quot;#library&quot;).hide();
+    $(&quot;.kp-notebook-metadata&quot;).hide();
+    $(&quot;h3.kp-notebook-metadata&quot;).show().parent().toggleClass(&quot;a-span5&quot;);
+    $(&quot;.kp-notebook-bookcover-container&quot;).hide();
+    $(&quot;.a-declarative&quot;).hide();
+    $(&quot;.kp-notebook-row-separator&quot;).css(&quot;border-bottom&quot;, &quot;none&quot;);
+    $(&quot;#annotations&quot;).css(&quot;float&quot;, &quot;none&quot;).css(&quot;max-width&quot;, &quot;800px&quot;).css(&quot;margin&quot;, &quot;auto&quot;);
+    $(&quot;.a-scroller&quot;).css(&quot;overflow&quot;, &quot;inherit&quot;);
+    $(&quot;.a-size-small&quot;).hide();
+  };
+
+  make_readable();
+  const highlights = $(&quot;.kp-notebook-row-separator&quot;)
+    .find(&quot;#highlight&quot;)
+    .map(function (idx, x) {
+      return $(x).text();
+    });
+  const notes = $(&quot;.kp-notebook-row-separator&quot;)
+    .find(&quot;#note&quot;)
+    .map(function (idx, x) {
+      return $(x).text();
+    });
+  add_download_links();
+})();"
+    >Kindle Highlights
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="rudolph">Rudolph</h3>
+   <p>Rudolph helps organize Secret Santa ...</p>
+<ol>
+<li>Setup a Google spreadsheet with &quot;Name&quot; &amp; &quot;Whatsapp Name&quot; columns with all
+participants. The sheet name should be participants. Make the sheet
+downloadable by everyone with URL.</li>
+<li>In any tab, maybe the bookmarklets site tab, run the bookmarklet to fetch
+all participants.</li>
 <li>Copy the participants to Clipboard by clicking the new button.</li>
 <li>In the WhatsApp Web tab, close any open chats.</li>
-<li>Run the bookmarklet again and copy the participants JSON into the
-prompt.</li>
+<li>Run the bookmarklet again and copy the participants JSON into the prompt.</li>
 <li>Profit!</li>
 </ol>
-<a class='bml' href='  javascript: (async () => {   const sendEnter = async (element) => {     const enterEvent = new KeyboardEvent("keydown", {       bubbles: true,       cancelable: true,       key: "Enter",       code: "Enter",     });     element.dispatchEvent(enterEvent);     await new Promise(function (r) {       setTimeout(r, 2000);     });   };    const sendMessage = async (santaId, santa, kiddo) => {     console.log(`Sending message to ${santa}!!`);     const searchBox = document.querySelector(       "div[contenteditable=&#39;true&#39;][data-tab=&#39;3&#39;]",     );     searchBox.focus();     document.execCommand("insertText", false, santaId);     await new Promise(function (r) {       setTimeout(r, 5000);     });     await sendEnter(searchBox);      const filler = `🎁 ${" ".repeat(50)} 🎁\n`;      const message = `Hi *${santa}*,\n\n\nYou are the Secret Santa for ...\n ${filler.repeat(10)}  🔽${" ".repeat(15)} Scroll down ${" ".repeat(15)}🔽\n ${filler.repeat(10)}\n\n *${kiddo}*!\n\n 🎅🎁 Please keep it a secret and make it special!\n\n Powered by Rudolph, a Bookmarklet: https://punchagan.github.io/bookmarklets/#rudolph`;      document.execCommand("insertText", false, message);     await new Promise(function (r) {       setTimeout(r, 500);     });     const sendButton = document.querySelector("button[aria-label=&#39;Send&#39;]");     sendButton.click();     await new Promise(function (r) {       setTimeout(r, 500);     });     document.querySelector(&#39;#main div[title="Menu"]&#39;)?.click();     await new Promise(function (r) {       setTimeout(r, 200);     });     document.querySelector(&#39;div[aria-label="Close chat"]&#39;)?.click();     await new Promise(function (r) {       setTimeout(r, 200);     });     document.querySelector(&#39;div[aria-label="Back"]&#39;)?.click();     document.querySelector("#side")?.click();   };    const fetchParticipants = async () => {     const sheetId = prompt(       "Enter the Google Spreadsheet ID containing participants:",     );     if (!sheetId) return alert("No spreadsheet ID provided.");     console.log(`Sheet: ${sheetId}`);     const url = `https://opensheet.elk.sh/${sheetId}/participants`;     let participants;     try {       const response = await fetch(url);       participants = await response.json();     } catch (error) {       return alert(         "Failed to fetch participant data. Ensure the spreadsheet ID is correct.",       );     }      if (!participants || participants.length < 2) {       return alert(         "Not enough participants found. Ensure the spreadsheet has at least two participants.",       );     }     const clipboardButton = document.createElement("button");     clipboardButton.textContent = "Copy Participants to Clipboard";     clipboardButton.style.position = "fixed";     clipboardButton.style.top = "10px";     clipboardButton.style.right = "10px";     clipboardButton.style.zIndex = "1000";     clipboardButton.addEventListener("click", async () => {       try {         await navigator.clipboard.writeText(JSON.stringify(participants));         alert(           "Participants copied to clipboard. Open WhatsApp Web and run the script again.",         );       } catch (err) {         alert(`Failed to copy to clipboard: ${err.message}`);       }       document.body.removeChild(clipboardButton);     });     document.body.appendChild(clipboardButton);   };    if (!window.location.href.includes("web.whatsapp.com")) {     await fetchParticipants();   } else {     const participantsJSON = prompt(       "Enter the assignments after fetching them on a different tab; WhatsApp Web tab doesn&#39;t allow fetching data.",     );     const participants = JSON.parse(participantsJSON);     let shuffled = [...participants].sort();     for (let i = 0; i < participants.length * 50; i++) {       shuffled = [...shuffled].sort(() => Math.random() - 0.5);     }     const assignments = shuffled.map((participant, i) => {       return {         santa: participant["Name"],         santaId: participant["WhatsApp Name"],         kiddo: shuffled[(i + 1) % shuffled.length]["Name"],       };     });     const shuffledAssignments = assignments.sort(() => Math.random() - 0.5);     for (const assignment of shuffledAssignments) {       await sendMessage(assignment.santaId, assignment.santa, assignment.kiddo);       await new Promise(function (r) {         setTimeout(r, 1000);       });     }   } })(); '>Rudolph</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/rudolph.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=save-momentum-quotes>Save Momentum Quotes</h3>
-<p>Save Momentum Quotes as a JSON file</p>
-<a class='bml' href=' javascript: void (function () {   if (     window.location.protocol !== "moz-extension:" ||     window.location.pathname !== "/dashboard.html"   ) {     alert("To download Momentum Quotes, run the bookmarklet in a new empty tab!");     return;   }   let quotes = Object.entries(localStorage)     .filter(([key, value]) => key.indexOf("momentum-quote-") > -1)     .reduce((acc, [_, value]) => [...acc, JSON.parse(value)], [])     .map(({ _id, forDate, body, source, is_favorite, twitter }) => ({       _id,       forDate,       body,       source,       is_favorite,       twitter,     }));    let data = [JSON.stringify(quotes, undefined, 2)],     blob = new Blob(data, { type: "text/json" }),     a = document.createElement("a");    a.download = "momentum-quotes.json";   a.href = window.URL.createObjectURL(blob);   a.click(); })(); '>Save Momentum Quotes</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/save-momentum-quotes.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=ultimate-central-roster-save-links>Ultimate Central Roster Save Links</h3>
-<p>Download profile links from a roster as a CSV</p>
-<h4 id="ultimate-central-roster-save-links-usage">Usage:</h4>
+
+   <a class="bml"
+    href="javascript: (async () =&gt; {
+  const sendEnter = async (element) =&gt; {
+    const enterEvent = new KeyboardEvent(&quot;keydown&quot;, {
+      bubbles: true,
+      cancelable: true,
+      key: &quot;Enter&quot;,
+      code: &quot;Enter&quot;,
+    });
+    element.dispatchEvent(enterEvent);
+    await new Promise(function (r) {
+      setTimeout(r, 2000);
+    });
+  };
+
+  const sendMessage = async (santaId, santa, kiddo) =&gt; {
+    console.log(`Sending message to ${santa}!!`);
+    const searchBox = document.querySelector(
+      &quot;div[contenteditable='true'][data-tab='3']&quot;,
+    );
+    searchBox.focus();
+    document.execCommand(&quot;insertText&quot;, false, santaId);
+    await new Promise(function (r) {
+      setTimeout(r, 5000);
+    });
+    await sendEnter(searchBox);
+
+    const filler = `🎁 ${&quot; &quot;.repeat(50)} 🎁\n`;
+
+    const message = `Hi *${santa}*,\n\n\nYou are the Secret Santa for ...\n
+${filler.repeat(10)}
+ 🔽${&quot; &quot;.repeat(15)} Scroll down ${&quot; &quot;.repeat(15)}🔽\n
+${filler.repeat(10)}\n\n
+*${kiddo}*!\n\n
+🎅🎁 Please keep it a secret and make it special!\n\n
+Powered by Rudolph, a Bookmarklet: https://punchagan.github.io/bookmarklets/#rudolph`;
+
+    document.execCommand(&quot;insertText&quot;, false, message);
+    await new Promise(function (r) {
+      setTimeout(r, 500);
+    });
+    const sendButton = document.querySelector(&quot;button[aria-label='Send']&quot;);
+    sendButton.click();
+    await new Promise(function (r) {
+      setTimeout(r, 500);
+    });
+    document.querySelector('#main div[title=&quot;Menu&quot;]')?.click();
+    await new Promise(function (r) {
+      setTimeout(r, 200);
+    });
+    document.querySelector('div[aria-label=&quot;Close chat&quot;]')?.click();
+    await new Promise(function (r) {
+      setTimeout(r, 200);
+    });
+    document.querySelector('div[aria-label=&quot;Back&quot;]')?.click();
+    document.querySelector(&quot;#side&quot;)?.click();
+  };
+
+  const fetchParticipants = async () =&gt; {
+    const sheetId = prompt(
+      &quot;Enter the Google Spreadsheet ID containing participants:&quot;,
+    );
+    if (!sheetId) return alert(&quot;No spreadsheet ID provided.&quot;);
+    console.log(`Sheet: ${sheetId}`);
+    const url = `https://opensheet.elk.sh/${sheetId}/participants`;
+    let participants;
+    try {
+      const response = await fetch(url);
+      participants = await response.json();
+    } catch (error) {
+      return alert(
+        &quot;Failed to fetch participant data. Ensure the spreadsheet ID is correct.&quot;,
+      );
+    }
+
+    if (!participants || participants.length &lt; 2) {
+      return alert(
+        &quot;Not enough participants found. Ensure the spreadsheet has at least two participants.&quot;,
+      );
+    }
+    const clipboardButton = document.createElement(&quot;button&quot;);
+    clipboardButton.textContent = &quot;Copy Participants to Clipboard&quot;;
+    clipboardButton.style.position = &quot;fixed&quot;;
+    clipboardButton.style.top = &quot;10px&quot;;
+    clipboardButton.style.right = &quot;10px&quot;;
+    clipboardButton.style.zIndex = &quot;1000&quot;;
+    clipboardButton.addEventListener(&quot;click&quot;, async () =&gt; {
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(participants));
+        alert(
+          &quot;Participants copied to clipboard. Open WhatsApp Web and run the script again.&quot;,
+        );
+      } catch (err) {
+        alert(`Failed to copy to clipboard: ${err.message}`);
+      }
+      document.body.removeChild(clipboardButton);
+    });
+    document.body.appendChild(clipboardButton);
+  };
+
+  if (!window.location.href.includes(&quot;web.whatsapp.com&quot;)) {
+    await fetchParticipants();
+  } else {
+    const participantsJSON = prompt(
+      &quot;Enter the assignments after fetching them on a different tab; WhatsApp Web tab doesn't allow fetching data.&quot;,
+    );
+    const participants = JSON.parse(participantsJSON);
+    let shuffled = [...participants].sort();
+    for (let i = 0; i &lt; participants.length * 50; i++) {
+      shuffled = [...shuffled].sort(() =&gt; Math.random() - 0.5);
+    }
+    const assignments = shuffled.map((participant, i) =&gt; {
+      return {
+        santa: participant[&quot;Name&quot;],
+        santaId: participant[&quot;WhatsApp Name&quot;],
+        kiddo: shuffled[(i + 1) % shuffled.length][&quot;Name&quot;],
+      };
+    });
+    const shuffledAssignments = assignments.sort(() =&gt; Math.random() - 0.5);
+    for (const assignment of shuffledAssignments) {
+      await sendMessage(assignment.santaId, assignment.santa, assignment.kiddo);
+      await new Promise(function (r) {
+        setTimeout(r, 1000);
+      });
+    }
+  }
+})();"
+    >Rudolph
+   </a>
+  </div>
+  <div class="bookmarklet">
+   <h3 id="save-momentum-quotes">Save Momentum Quotes</h3>
+   <p>Save Momentum Quotes as a JSON file</p>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  if (
+    window.location.protocol !== &quot;moz-extension:&quot; ||
+    window.location.pathname !== &quot;/dashboard.html&quot;
+  ) {
+    alert(&quot;To download Momentum Quotes, run the bookmarklet in a new empty tab!&quot;);
+    return;
+  }
+  let quotes = Object.entries(localStorage)
+    .filter(([key, value]) =&gt; key.indexOf(&quot;momentum-quote-&quot;) &gt; -1)
+    .reduce((acc, [_, value]) =&gt; [...acc, JSON.parse(value)], [])
+    .map(({ _id, forDate, body, source, is_favorite, twitter }) =&gt; ({
+      _id,
+      forDate,
+      body,
+      source,
+      is_favorite,
+      twitter,
+    }));
+
+  let data = [JSON.stringify(quotes, undefined, 2)],
+    blob = new Blob(data, { type: &quot;text/json&quot; }),
+    a = document.createElement(&quot;a&quot;);
+
+  a.download = &quot;momentum-quotes.json&quot;;
+  a.href = window.URL.createObjectURL(blob);
+  a.click();
+})();"
+    >Save Momentum Quotes
+   </a>
+  </div>
+  <div class="bookmarklet">
+   <h3 id="ultimate-central-roster-save-links">
+    Ultimate Central Roster Save Links
+   </h3>
+   <p>Download profile links from a roster as a CSV</p>
+<h4>Usage:</h4>
 <p>Navigate to the roster page and click the bookmarklet</p>
-<a class='bml' href='  javascript: void (function() {   const getName = () => {     const URLparts = location.pathname.split("/");     const n = URLparts.length - 1;     return URLparts[n] === "roster" ? URLparts[n - 1] : URLparts[n];   };    const data = Array.from(document.querySelectorAll(".media-item-tile"))     .map(x => `"${x.querySelector("h3").textContent}",${x.href}`)     .join("\n");    const blob = new Blob([data], { type: "text/csv" });   const a = document.createElement("a");    a.download = `${getName()}.csv`;   a.href = window.URL.createObjectURL(blob);   a.click(); })(); '>Ultimate Central Roster Save Links</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/ultimate-central-roster-save-links.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=whatsapp-diff>Whatsapp Diff</h3>
-<p>Compare and find the difference between two WhatsApp groups</p>
-<h4 id="whatsapp-diff-usage">Usage</h4>
-<ol type="1">
-<li>Visit <a
-href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
-<li>Navigate to the first group, wait until the member information is
-populated (in the group heading) and click the bookmarklet.</li>
-<li>Navigate to the second group, wait until the member information is
-populated and click the bookmarklet.</li>
+
+   <a class="bml"
+    href="javascript: void (function() {
+  const getName = () =&gt; {
+    const URLparts = location.pathname.split(&quot;/&quot;);
+    const n = URLparts.length - 1;
+    return URLparts[n] === &quot;roster&quot; ? URLparts[n - 1] : URLparts[n];
+  };
+
+  const data = Array.from(document.querySelectorAll(&quot;.media-item-tile&quot;))
+    .map(x =&gt; `&quot;${x.querySelector(&quot;h3&quot;).textContent}&quot;,${x.href}`)
+    .join(&quot;\n&quot;);
+
+  const blob = new Blob([data], { type: &quot;text/csv&quot; });
+  const a = document.createElement(&quot;a&quot;);
+
+  a.download = `${getName()}.csv`;
+  a.href = window.URL.createObjectURL(blob);
+  a.click();
+})();"
+    >Ultimate Central Roster Save Links
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="whatsapp-diff">Whatsapp Diff</h3>
+   <p>Compare and find the difference between two WhatsApp groups</p>
+<h4>Usage</h4>
+<ol>
+<li>
+<p>Visit https://web.whatsapp.com/</p>
+</li>
+<li>
+<p>Navigate to the first group, wait until the member information is
+populated (in the group heading) and click the bookmarklet.</p>
+</li>
+<li>
+<p>Navigate to the second group, wait until the member information is
+populated and click the bookmarklet.</p>
+</li>
 </ol>
-<a class='bml' href='     javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const subtitle = elements[1].textContent;     if (       subtitle === "click here for group info" ||       subtitle.includes("is typing")     ) {       return { name, members: [] };     }     const members = subtitle.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (group.members.length === 0) {     alert("Could not get members info. Wait until the member list shows up in the group heading");   } else if (!window.firstGroup) {     window.firstGroup = group;     alert(`Captured info for first group\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { firstGroup } = window;     delete window.firstGroup;     diff(group, firstGroup);     diff(firstGroup, group);   } })(); '>Whatsapp Diff</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/whatsapp-diff.js"><small>Source</small></a></div><div class='bookmarklet'><h3 id=whatsapp-sum-diff>Whatsapp Sum Diff</h3>
-<p>Find the difference between combination of two groups (A &amp; B) and
-another group (C)</p>
-<h4 id="whatsapp-sum-diff-usage">Usage</h4>
-<ol type="1">
-<li>Visit <a
-href="https://web.whatsapp.com/">https://web.whatsapp.com/</a></li>
-<li>Navigate to group A in WhatsApp Web, wait until the member
-information is populated (in the group heading) and click the
-bookmarklet.</li>
-<li>Navigate to group B, wait until the member information is populated
-(in the group heading) and click the bookmarklet.</li>
-<li>Finally, Navigate to group C, wait until the member information is
-populated and click the bookmarklet.</li>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  const groupInfo = () =&gt; {
+    const elements = document.querySelectorAll(&quot;#main span[title]&quot;);
+    const name = elements[0].textContent;
+    const subtitle = elements[1].textContent;
+    if (
+      subtitle === &quot;click here for group info&quot; ||
+      subtitle.includes(&quot;is typing&quot;)
+    ) {
+      return { name, members: [] };
+    }
+    const members = subtitle.replace(/ /g, &quot;&quot;).split(&quot;,&quot;);
+    return { name, members };
+  };
+  const diff = function (a, b) {
+    const missing = a.members.filter((name) =&gt; !b.members.includes(name));
+    const msg = `List of people in ${a.name} but not in ${b.name}`;
+    const names = missing.join(&quot;\n&quot;);
+    const count = `${missing.length} people`;
+    alert(`${msg}\n${names}\n${count}`);
+  };
+  if (window.location.hostname !== &quot;web.whatsapp.com&quot;) {
+    alert(&quot;Make sure that the current tab is the WhatsApp Web tab.&quot;);
+    return;
+  }
+  const group = groupInfo();
+  if (group.members.length === 0) {
+    alert(&quot;Could not get members info. Wait until the member list shows up in the group heading&quot;);
+  } else if (!window.firstGroup) {
+    window.firstGroup = group;
+    alert(`Captured info for first group\nName: ${group.name}\nMembers: ${group.members.length}`);
+  } else {
+    const { firstGroup } = window;
+    delete window.firstGroup;
+    diff(group, firstGroup);
+    diff(firstGroup, group);
+  }
+})();"
+    >Whatsapp Diff
+   </a>
+  </div>
+  <div class="bookmarklet"><h3 id="whatsapp-sum-diff">Whatsapp Sum Diff</h3>
+   <p>Find the difference between combination of two groups (A &amp; B) and another
+group (C)</p>
+<h4>Usage</h4>
+<ol>
+<li>
+<p>Visit https://web.whatsapp.com/</p>
+</li>
+<li>
+<p>Navigate to group A in WhatsApp Web, wait until the member information is
+populated (in the group heading) and click the bookmarklet.</p>
+</li>
+<li>
+<p>Navigate to group B, wait until the member information is populated (in
+the group heading) and click the bookmarklet.</p>
+</li>
+<li>
+<p>Finally, Navigate to group C, wait until the member information is
+populated and click the bookmarklet.</p>
+</li>
 </ol>
-<a class='bml' href='      javascript: void (function () {   const groupInfo = () => {     const elements = document.querySelectorAll("#main span[title]");     const name = elements[0].textContent;     const subtitle = elements[1].textContent;     if (       subtitle === "click here for group info" ||       subtitle.includes("is typing")     ) {       return { name, members: [] };     }     const members = subtitle.replace(/ /g, "").split(",");     return { name, members };   };   const diff = function (a, b) {     const missing = a.members.filter((name) => !b.members.includes(name));     const msg = `List of people in ${a.name} but not in ${b.name}`;     const names = missing.join("\n");     const count = `${missing.length} people`;     alert(`${msg}\n${names}\n${count}`);   };   if (window.location.hostname !== "web.whatsapp.com") {     alert("Make sure that the current tab is the WhatsApp Web tab.");     return;   }   const group = groupInfo();   if (group.members.length === 0) {     alert("Could not get members info. Wait until the member list shows up in the group heading");   } else if (!window.groupA) {     window.groupA = group;     alert(`Captured info for group A\nName: ${group.name}\nMembers: ${group.members.length}`);   } else if (!window.groupB) {     window.groupB = group;     alert(`Captured info for group B\nName: ${group.name}\nMembers: ${group.members.length}`);   } else {     const { groupA, groupB } = window;     delete window.groupA;     delete window.groupB;     const combinedGroup = {       name: `${groupA.name} & ${groupB.name}`,       members: groupA.members.concat(groupB),     };     diff(group, combinedGroup);     diff(combinedGroup, group);   } })(); '>Whatsapp Sum Diff</a>
-<a href="https://github.com/punchagan/bookmarklets/tree/main/src/whatsapp-sum-diff.js"><small>Source</small></a></div>
-      </main>
-      <footer>
-        <p>Last updated: Wednesday 11 December 2024 04:16:36 AM IST<p>
-        <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a><p>
-      </footer>
-    </body>
+
+   <a class="bml"
+    href="javascript: void (function () {
+  const groupInfo = () =&gt; {
+    const elements = document.querySelectorAll(&quot;#main span[title]&quot;);
+    const name = elements[0].textContent;
+    const subtitle = elements[1].textContent;
+    if (
+      subtitle === &quot;click here for group info&quot; ||
+      subtitle.includes(&quot;is typing&quot;)
+    ) {
+      return { name, members: [] };
+    }
+    const members = subtitle.replace(/ /g, &quot;&quot;).split(&quot;,&quot;);
+    return { name, members };
+  };
+  const diff = function (a, b) {
+    const missing = a.members.filter((name) =&gt; !b.members.includes(name));
+    const msg = `List of people in ${a.name} but not in ${b.name}`;
+    const names = missing.join(&quot;\n&quot;);
+    const count = `${missing.length} people`;
+    alert(`${msg}\n${names}\n${count}`);
+  };
+  if (window.location.hostname !== &quot;web.whatsapp.com&quot;) {
+    alert(&quot;Make sure that the current tab is the WhatsApp Web tab.&quot;);
+    return;
+  }
+  const group = groupInfo();
+  if (group.members.length === 0) {
+    alert(&quot;Could not get members info. Wait until the member list shows up in the group heading&quot;);
+  } else if (!window.groupA) {
+    window.groupA = group;
+    alert(`Captured info for group A\nName: ${group.name}\nMembers: ${group.members.length}`);
+  } else if (!window.groupB) {
+    window.groupB = group;
+    alert(`Captured info for group B\nName: ${group.name}\nMembers: ${group.members.length}`);
+  } else {
+    const { groupA, groupB } = window;
+    delete window.groupA;
+    delete window.groupB;
+    const combinedGroup = {
+      name: `${groupA.name} &amp; ${groupB.name}`,
+      members: groupA.members.concat(groupB),
+    };
+    diff(group, combinedGroup);
+    diff(combinedGroup, group);
+  }
+})();"
+    >Whatsapp Sum Diff
+   </a>
+  </div>
+  <footer><p>Last updated: 2024-12-12T15:25:30-00:00</p>
+   <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a>
+   </p>
+  </footer>
+ </body>
 </html>

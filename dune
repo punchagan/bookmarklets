@@ -1,0 +1,16 @@
+(executable
+ (public_name gen)
+ (name gen)
+ (libraries str ptime ptime.clock cmarkit tyxml))
+
+(rule
+ (alias index)
+ (mode promote)
+ (targets index.html)
+ (deps
+  %{bin:gen}
+  "README.md"
+  (glob_files "./src/*.js"))
+ (action
+  (progn
+   (run %{bin:gen}))))
