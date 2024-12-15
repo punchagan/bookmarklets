@@ -89,17 +89,55 @@ let bml_html { title = bm_title; filename; code = bm_code; doc } =
   bml
 
 let process_readme path =
-  let lines = In_channel.with_open_text path In_channel.input_lines in
-  (* Remove line with link to website and header *)
-  let readme =
-    lines
-    |> List.filter (fun s ->
-           s |> String.starts_with ~prefix:"You can view them at" |> not
-           && s |> String.starts_with ~prefix:"# Book" |> not)
+  let open Cmarkit in
+  (* Helper function to find and render specific sections by heading *)
+  let extract_section ?(include_header = false) heading_name doc =
+    let rec find_sections acc = function
+      | [] -> List.rev acc
+      | (Block.Heading (heading, _) as block) :: blocks
+        when Inline.to_plain_text ~break_on_soft:true
+               (Block.Heading.inline heading)
+             |> List.concat |> String.concat "" |> String.trim = heading_name ->
+          let rec collect_content content = function
+            | [] -> List.rev content
+            | Block.Heading (_next_heading, _) :: _ -> content
+            | block :: rest -> collect_content (block :: content) rest
+          in
+          let content_blocks, remaining_blocks =
+            (collect_content [] blocks, blocks)
+          in
+          let content = find_sections (content_blocks @ acc) remaining_blocks in
+          if include_header then block :: content else content
+      | _ :: rest -> find_sections acc rest
+    in
+    match Doc.block doc with
+    | Block.Blocks (blocks, _) -> find_sections [] blocks
+    | single_block -> find_sections [] [ single_block ]
+  in
+
+  (* Parse the Markdown file into a Cmarkit document *)
+  let markdown = In_channel.with_open_text path In_channel.input_all in
+  let doc = Doc.of_string markdown in
+
+  (* Extract relevant sections *)
+  let description_blocks = extract_section "Bookmarklets" doc in
+  let installation_blocks =
+    extract_section ~include_header:true "Installation" doc
+  in
+
+  (* Render the extracted sections into HTML *)
+  let render_blocks blocks =
+    blocks
+    |> List.map (fun block ->
+           let sub_doc = Doc.make block in
+           Cmarkit_html.of_doc ~safe:true sub_doc)
     |> String.concat "\n"
   in
-  let doc = Cmarkit.Doc.of_string readme |> Cmarkit_html.of_doc ~safe:true in
-  doc
+  let description_html = render_blocks description_blocks in
+  let installation_html = render_blocks installation_blocks in
+
+  (* Combine the sections into the final HTML *)
+  String.concat "\n" [ description_html; installation_html ]
 
 let make_footer () =
   let open Tyxml.Html in
