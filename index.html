@@ -241,6 +241,8 @@ Dashboard</a></p>
 <li>Setup a Google spreadsheet with &quot;Name&quot; &amp; &quot;Whatsapp Name&quot; columns with all
 participants. The sheet name should be participants. Make the sheet
 downloadable by everyone with URL.</li>
+<li>Optionally, add an &quot;Avoid Kiddos&quot; column with a comma-separated list of
+participants to avoid assigning as kiddos to a person.</li>
 <li>In any tab, maybe the bookmarklets site tab, run the bookmarklet to fetch
 all participants.</li>
 <li>Copy the participants to Clipboard by clicking the new button.</li>
@@ -349,7 +351,7 @@ const fetchParticipants = async () =&gt; {
   document.body.appendChild(clipboardButton);
 };
 
-const generateAssignments = async (participants) =&gt; {
+const generateShuffledAssignments = async (participants) =&gt; {
   let shuffled = [...participants].sort();
   for (let i = 0; i &lt; participants.length * 50; i++) {
     shuffled = [...shuffled].sort(() =&gt; Math.random() - 0.5);
@@ -364,6 +366,72 @@ const generateAssignments = async (participants) =&gt; {
   return assignments.sort(() =&gt; Math.random() - 0.5);
 };
 
+const generateAssignmentsWithConstraints = (participants) =&gt; {
+  const assignments = [];
+  const usedKiddos = new Set();
+
+  const validKiddo = (santa, kiddo) =&gt; {
+    return (
+      !santa[&quot;Avoid Kiddos&quot;]?.includes(kiddo.Name) &amp;&amp; kiddo.Name !== santa.Name
+    );
+  };
+
+  const findValidKiddo = (santa, availableKiddos) =&gt; {
+    for (const kiddo of availableKiddos) {
+      if (validKiddo(santa, kiddo)) {
+        return kiddo;
+      }
+    }
+    return null;
+  };
+
+  const assignSanta = (index) =&gt; {
+    if (index &gt;= participants.length) {
+      return true;
+    }
+
+    const santa = participants[index];
+    const availableKiddos = participants.filter((p) =&gt; !usedKiddos.has(p.Name));
+    const shuffledKiddos = [...availableKiddos].sort(() =&gt; Math.random() - 0.5);
+
+    for (const kiddo of shuffledKiddos) {
+      if (validKiddo(santa, kiddo)) {
+        assignments.push({
+          santa: santa.Name,
+          santaId: santa[&quot;WhatsApp Name&quot;],
+          kiddo: kiddo.Name,
+        });
+        usedKiddos.add(kiddo.Name);
+
+        if (assignSanta(index + 1)) {
+          return true;
+        }
+
+        assignments.pop();
+        usedKiddos.delete(kiddo.Name);
+      }
+    }
+
+    return false;
+  };
+
+  if (!assignSanta(0)) {
+    throw new Error(
+      &quot;Unsolvable constraints: Unable to generate valid assignments.&quot;,
+    );
+  }
+
+  return assignments;
+};
+
+const generateAssignments = (participants) =&gt; {
+  useConstraints = participants.some((p) =&gt; p[&quot;Avoid Kiddos&quot;]);
+  console.log(`Using constraints: ${useConstraints}`);
+  return useConstraints
+    ? generateAssignmentsWithConstraints(participants)
+    : generateShuffledAssignments(participants);
+};
+
 const main = async () =&gt; {
   if (!window.location.href.includes(&quot;web.whatsapp.com&quot;)) {
     await fetchParticipants();
@@ -372,8 +440,11 @@ const main = async () =&gt; {
       &quot;Enter the assignments after fetching them on a different tab; WhatsApp Web tab doesn't allow fetching data.&quot;,
     );
     const participants = JSON.parse(participantsJSON);
-    const shuffledAssignments = generateAssignments(participants);
-    for (const assignment of shuffledAssignments) {
+    participants.map((p) =&gt; {
+      p[&quot;Avoid Kiddos&quot;] = p[&quot;Avoid Kiddos&quot;]?.split(&quot;,&quot;).map((k) =&gt; k.trim());
+    });
+    const assignments = generateAssignments(participants);
+    for (const assignment of assignments) {
       await sendMessage(assignment.santaId, assignment.santa, assignment.kiddo);
       await new Promise(function (r) {
         setTimeout(r, 1000);
@@ -381,6 +452,10 @@ const main = async () =&gt; {
     }
   }
 };
+
+if (typeof module !== &quot;undefined&quot; &amp;&amp; module.exports) {
+  module.exports = { generateAssignments };
+}
 main()})();"
     >Rudolph
    </a>
@@ -582,7 +657,7 @@ populated and click the bookmarklet.</p>
     >Whatsapp Sum Diff
    </a>
   </div>
-  <footer><p>Last updated: 2024-12-12T17:23:34-00:00</p>
+  <footer><p>Last updated: 2024-12-15T10:29:35-00:00</p>
    <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a>
    </p>
   </footer>
