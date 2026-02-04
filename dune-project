@@ -2,8 +2,6 @@
 
 (name bookmarklets)
 
-(generate_opam_files true)
-
 (source
  (github punchagan/bookmarklets))
 
@@ -15,9 +13,9 @@
 
 (package
  (name bookmarklets)
- (synopsis
-  "A collection of my bookmarklets to automate various things in the browser")
- (description "A longer description")
- (depends dune cmarkit tyxml tyxml-ppx))
+ (synopsis "A collection of bookmarklets.")
+ (description
+  "A collection of my bookmarklets to automate various things in the browser.")
+ (depends ocaml cmarkit tyxml ptime tyxml-ppx))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

@@ -12,9 +12,9 @@ You can view them at [punchagan.github.io/bookmarklets](https://punchagan.github
 
 #### Development
 
-We use `dune` to build the `index.html` page with all the bookmarklets. You can
-run `dune build --watch @index` to regenerate the `index.html` page while
-editing any src/*.js file. 
+We use `dune pkg` to build the `index.html` page with all the bookmarklets. You
+can run `dune build --watch @index` to regenerate the `index.html` page while
+editing any src/*.js file.
 
 You can also write tests and run them using `node tests/run.js`. See
 `src/rudolph.js` for an example.
