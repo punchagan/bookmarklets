@@ -666,7 +666,697 @@ populated and click the bookmarklet.</p>
     >Whatsapp Sum Diff
    </a>
   </div>
-  <footer><p>Last updated: 2026-02-04T16:13:27-00:00</p>
+  <div class="bookmarklet"><h3 id="zoom-chat-replay">Zoom Chat Replay</h3>
+   <p>Create a Zoom chat replay from a downloaded transcript</p>
+<p>This bookmarklet is for use with a Zoom video recording that has been
+uploaded to Google Drive, along with the chat transcript. The video and the
+transcript are assumed to have 'Anyone with link' can view permissions. The
+bookmarklet creates a chat replay UI next to the video player on the Google
+Drive page.</p>
+<p>NOTE: This has only been tested with Zoom transcripts with English language
+setting in Zoom. Other languages are not supported.</p>
+<h4>Usage:</h4>
+<ol start="0">
+<li>
+<p>Install the bookmarklet. (See instructions at the top of this page).</p>
+</li>
+<li>
+<p>Copy the share URL of the Zoom Chat Transcript that has been uploaded to
+Google Drive. NOTE: The transcript .txt file needs to be accessible to
+anyone with the link for this bookmarklet to be able to download it.</p>
+</li>
+<li>
+<p>Start playing the video uploaded to Google Drive</p>
+</li>
+<li>
+<p>Click on this bookmarklet and paste the share URL of the Zoom Chat
+Transcript in the newly created chat replay UI.</p>
+</li>
+<li>
+<p>A guessed video recording start time based on the timestamps in the
+transcript file is used. But, you can edit the start time in the UI to
+adjust the sync.</p>
+</li>
+</ol>
+
+   <a class="bml"
+    href="javascript: void (async function () {
+  const replayDivId = &quot;chat-replay&quot;;
+  const statusId = &quot;chat-replay-status&quot;;
+
+  const styles = `
+    #${replayDivId} {
+      display: flex;
+      flex-direction: column;
+      background-color: #e5ddd5;
+      overflow: hidden;
+    }
+    #${statusId} {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: #075e54;
+      padding: 4px 10px;
+    }
+    #chat-replay-url-form {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    #chat-replay-url-form input {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 8px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #chat-replay-url-form button {
+      padding: 6px 10px;
+      font-size: 13px;
+      background: #075e54;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #chat-replay-start-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      font-family: Arial, sans-serif;
+      font-size: 12.5px;
+      color: #075e54;
+    }
+    #chat-replay-start-time input {
+      font-size: 12.5px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #chat-replay-messages {
+      overflow-y: auto;
+      flex: 1;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    #chat-replay-jump-to-latest {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #075e54;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    .chat-replay-msg {
+      background: #fff;
+      border-radius: 7.5px;
+      padding: 6px 9px 8px;
+      margin-bottom: 6px;
+      max-width: 85%;
+      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+      position: relative;
+    }
+    .chat-replay-sender {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .chat-replay-quote {
+      background: rgba(0, 0, 0, 0.05);
+      border-left: 4px solid;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      font-size: 12.5px;
+      color: #667781;
+    }
+    .chat-replay-quote-sender {
+      font-weight: bold;
+      font-size: 12.5px;
+      margin-bottom: 1px;
+    }
+    .chat-replay-quote-text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .chat-replay-text {
+      font-size: 14.2px;
+      color: #111b21;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .chat-replay-time {
+      display: block;
+      text-align: right;
+      margin-top: 4px;
+      font-size: 11px;
+      color: #667781;
+    }
+    .chat-replay-reactions {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .chat-replay-reaction {
+      background: #fff;
+      border: 1px solid #e9edef;
+      border-radius: 12px;
+      padding: 1px 6px;
+      font-size: 12px;
+      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+    }
+  `;
+
+  const injectStyles = () =&gt; {
+    const styleId = `${replayDivId}-style`;
+    if (document.querySelector(`#${styleId}`)) {
+      return;
+    }
+    const style = document.createElement(&quot;style&quot;);
+    style.setAttribute(&quot;id&quot;, styleId);
+    style.textContent = styles;
+    document.head.append(style);
+  };
+
+  const setStatus = (message) =&gt; {
+    let statusDiv = document.querySelector(`#${statusId}`);
+    if (!statusDiv) {
+      console.error(&quot;Status div not found&quot;);
+    }
+    statusDiv.innerText = message;
+  };
+
+  const createInputUI = () =&gt; {
+    let videoEl;
+    for (let i = 0; i &lt; 10; i++) {
+      videoEl = document.querySelector(
+        `#drive-viewer-video-player-object-${i}`,
+      );
+      if (!!videoEl) break;
+    }
+    if (!videoEl) {
+      alert(&quot;Couldn't find the video player&quot;);
+      return;
+    }
+    const siblingEl = videoEl.parentElement.parentElement;
+    const parentEl = siblingEl.parentElement;
+
+    let chatReplayDiv = document.querySelector(`#${replayDivId}`);
+    if (!chatReplayDiv) {
+      chatReplayDiv = document.createElement(&quot;div&quot;);
+      chatReplayDiv.setAttribute(&quot;id&quot;, replayDivId);
+      parentEl.append(chatReplayDiv);
+    }
+    chatReplayDiv.style.cssText = siblingEl.style.cssText;
+
+    const width =
+          (document.documentElement.clientWidth - siblingEl.clientWidth - 50) / 2;
+    chatReplayDiv.style.width = `${width}px`;
+    chatReplayDiv.style.position = &quot;absolute&quot;;
+    chatReplayDiv.style.top = siblingEl.offsetTop + &quot;px&quot;;
+    chatReplayDiv.style.left =
+      siblingEl.offsetLeft + siblingEl.clientWidth + &quot;px&quot;;
+
+    let statusDiv = document.querySelector(`#${statusId}`);
+    if (!statusDiv) {
+      statusDiv = document.createElement(&quot;div&quot;);
+      statusDiv.setAttribute(&quot;id&quot;, statusId);
+      chatReplayDiv.append(statusDiv);
+    }
+  };
+
+  const fetchParams = {
+    credentials: &quot;include&quot;,
+    headers: {
+      &quot;User-Agent&quot;:
+      &quot;Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:155.0) Gecko/20100101 Firefox/155.0&quot;,
+      Accept: &quot;*/*&quot;,
+      &quot;Accept-Language&quot;: &quot;en-US,en;q=0.9&quot;,
+      &quot;X-Drive-First-Party&quot;: &quot;DriveWebUi&quot;,
+      &quot;X-Json-Requested&quot;: &quot;true&quot;,
+      &quot;Content-Type&quot;: &quot;application/x-www-form-urlencoded;charset=utf-8&quot;,
+      &quot;Alt-Used&quot;: &quot;drive.usercontent.google.com&quot;,
+      &quot;Sec-Fetch-Dest&quot;: &quot;empty&quot;,
+      &quot;Sec-Fetch-Mode&quot;: &quot;cors&quot;,
+      &quot;Sec-Fetch-Site&quot;: &quot;same-site&quot;,
+      Priority: &quot;u=0&quot;,
+    },
+    referrer: &quot;https://drive.google.com/&quot;,
+    method: &quot;POST&quot;,
+    mode: &quot;cors&quot;,
+  };
+  const getChatDownloadUrl = async (url) =&gt; {
+    setStatus(&quot;Processing chat transcript URL ...&quot;);
+    try {
+      const response = await fetch(url, fetchParams);
+      if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+      }
+      const result = await response.text();
+      const data = result.substring(4);
+      const downloadUrl = JSON.parse(data)?.downloadUrl;
+      return downloadUrl;
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const shareUrlToDownloadUrl = (url) =&gt; {
+    const match = url.match(/file\/d\/(\w+)/);
+    if (!match) {
+      setStatus(&quot;Invalid Google Drive share URL. Please use the Share URL&quot;);
+      return null;
+    }
+    const fileId = match[1];
+    return `https://drive.google.com/uc?id=${fileId}&amp;authuser=0&amp;export=download`;
+  };
+
+  const downloadChatText = async (url) =&gt; {
+    const downloadUrl = await getChatDownloadUrl(shareUrlToDownloadUrl(url));
+    if (!downloadUrl) {
+      alert(&quot;failed to get downloadable URL!&quot;);
+      return;
+    }
+    console.log(`Obtained URL. Downloading ...`);
+    setStatus(&quot;Downloading chat transcript ...&quot;);
+    statusDiv = document.querySelector(`#${statusId}`);
+    statusDiv.innerText = &quot;Downloading chat transcript ...&quot;;
+    const response = await fetch(downloadUrl, {
+      method: &quot;GET&quot;,
+      mode: &quot;cors&quot;,
+    });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+    statusDiv.innerText = &quot;&quot;;
+    return await response.text();
+  };
+
+  const getChatText = () =&gt; {
+    if (window.chatText) {
+      return Promise.resolve(window.chatText);
+    }
+    return new Promise((resolve) =&gt; {
+      const chatReplayDiv = document.querySelector(`#${replayDivId}`);
+      const formId = &quot;chat-replay-url-form&quot;;
+      const form = document.createElement(&quot;form&quot;);
+      form.setAttribute(&quot;id&quot;, formId);
+
+      const input = document.createElement(&quot;input&quot;);
+      input.type = &quot;url&quot;;
+      input.placeholder = &quot;Paste chat transcript share URL&quot;;
+      input.required = true;
+      form.append(input);
+
+      const button = document.createElement(&quot;button&quot;);
+      button.type = &quot;submit&quot;;
+      button.textContent = &quot;Load chat&quot;;
+      form.append(button);
+
+      chatReplayDiv.append(form);
+      input.focus();
+
+      form.addEventListener(&quot;submit&quot;, async (event) =&gt; {
+        event.preventDefault();
+        const url = input.value.trim();
+        if (!url) {
+          return;
+        }
+        form.remove();
+        const text = await downloadChatText(url);
+        window.chatText = text;
+        resolve(text);
+      });
+    });
+  };
+
+  const parseTimestampToSeconds = (timestamp) =&gt; {
+    const [hours, minutes, seconds] = timestamp.split(&quot;:&quot;).map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  const secondsToTimeString = (totalSeconds) =&gt; {
+    const normalized = ((totalSeconds % 86400) + 86400) % 86400;
+    const hours = Math.floor(normalized / 3600);
+    const minutes = Math.floor((normalized % 3600) / 60);
+    const seconds = Math.floor(normalized % 60);
+    const pad = (n) =&gt; String(n).padStart(2, &quot;0&quot;);
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  const parseChatText = (text) =&gt; {
+    setStatus(&quot;Parsing chat transcript ...&quot;);
+    const lines = text.split(/\n(?=\d{2}:\d{2}:\d{2})/);
+    console.log(`Parsed ${lines.length} chat lines`);
+    let messages = [];
+    lines.forEach((line, idx) =&gt; {
+      const trimmedLine = line.replace(/[\u200B-\u200D\uFEFF]/g, &quot;&quot;).trim(); // Remove zero-width characters and trim whitespace
+      const match = trimmedLine.match(
+        /(\d{2}:\d{2}:\d{2})\s+From (.+?) : ([\s\S]*)/,
+      );
+      if (match) {
+        const timestamp = match[1];
+        const sender = match[2];
+        let message = match[3];
+        let originalMessage = null;
+        const isReply = message.startsWith(&quot;Replying to&quot;);
+        const isReaction = message.startsWith(&quot;Reacted to&quot;);
+        if (isReply) {
+          const replyMatch = message.match(
+            /Replying to &quot;([\s\S]+?)&quot;\s?\n\n\s?([\s\S]*)\s*$/,
+          );
+          if (replyMatch) {
+            originalMessage = replyMatch[1].trim().replace(/&quot;$/, &quot;&quot;).trim();
+            message = replyMatch[2];
+          } else {
+            console.warn(
+              `Failed to parse reply message from line: ${JSON.stringify(
+                line,
+              )}\n`,
+            );
+          }
+        } else if (isReaction) {
+          const reactionMatch = message.match(
+            /Reacted to &quot;?([\s\S]+)&quot;? with &quot;?(.)&quot;?/u,
+          );
+          if (reactionMatch) {
+            originalMessage = reactionMatch[1].trim().replace(/&quot;$/, &quot;&quot;).trim();
+            message = reactionMatch[2];
+          } else {
+            console.warn(`Failed to parse reaction message: ${message}`);
+          }
+        }
+        const originalMessageStripped = originalMessage
+        ?.replace(/\.\.\.$/, &quot;&quot;)
+         .replace(/…$/, &quot;&quot;);
+        const originalTruncated =
+              originalMessage &amp;&amp; originalMessage !== originalMessageStripped;
+        const parsedMessage = {
+          id: idx,
+          timestamp,
+          totalSeconds: parseTimestampToSeconds(timestamp),
+          sender,
+          message: message.trim().replace(/\r/g, &quot;\n&quot;),
+          replyTo: isReply
+            ? messages.find((msg) =&gt;
+              originalTruncated
+                ? msg.message.startsWith(originalMessageStripped)
+                : msg.message === originalMessage,
+            )?.id
+            : null,
+          reactionTo: isReaction
+            ? messages.find((msg) =&gt;
+              originalTruncated
+                ? msg.message.startsWith(originalMessageStripped)
+                : msg.message === originalMessage,
+            )?.id
+            : null,
+        };
+        if (isReaction &amp;&amp; !parsedMessage.reactionTo) {
+          parsedMessage.reactionTo = messages.find((msg) =&gt;
+            msg.message.startsWith(originalMessage.slice(0, 40).trim()),
+          )?.id;
+        }
+        if (isReply &amp;&amp; !parsedMessage.replyTo) {
+          parsedMessage.replyTo = messages.find((msg) =&gt;
+            msg.message.startsWith(originalMessage.slice(0, 40).trim()),
+          )?.id;
+        }
+        messages.push(parsedMessage);
+      } else {
+        console.warn(`Failed to parse line: ${line}`);
+      }
+    });
+    setStatus(&quot;&quot;);
+    return messages;
+  };
+
+  const setupChatReplay = (messages) =&gt; {
+    const messagesId = &quot;chat-replay-messages&quot;;
+    const startTimeId = &quot;chat-replay-start-time&quot;;
+    const chatReplayDiv = document.querySelector(`#${replayDivId}`);
+    if (!chatReplayDiv) {
+      console.error(&quot;Chat replay div not found&quot;);
+      return;
+    }
+
+    document.querySelector(`#${startTimeId}`)?.remove();
+    document.querySelector(`#${messagesId}`)?.remove();
+    document.querySelector(&quot;#chat-replay-jump-to-latest&quot;)?.remove();
+    if (window.__chatReplayMessageListener) {
+      window.removeEventListener(&quot;message&quot;, window.__chatReplayMessageListener);
+    }
+    clearTimeout(window.__chatReplayFallbackTimer);
+
+    const senderColors = [
+      &quot;#e542a3&quot;,
+      &quot;#d3691e&quot;,
+      &quot;#4a8cca&quot;,
+      &quot;#6b7fd7&quot;,
+      &quot;#5ab55e&quot;,
+      &quot;#c4548a&quot;,
+      &quot;#9c6fd6&quot;,
+      &quot;#3fa79b&quot;,
+      &quot;#e0793e&quot;,
+      &quot;#5f9ea0&quot;,
+    ];
+    const colorForSender = (sender) =&gt; {
+      let hash = 0;
+      for (let i = 0; i &lt; sender.length; i++) {
+        hash = (hash &lt;&lt; 5) - hash + sender.charCodeAt(i);
+        hash |= 0;
+      }
+      return senderColors[Math.abs(hash) % senderColors.length];
+    };
+    const findById = (id) =&gt; messages.find((m) =&gt; m.id === id);
+
+    const messagesDiv = document.createElement(&quot;div&quot;);
+    messagesDiv.setAttribute(&quot;id&quot;, messagesId);
+
+    const renderMessage = (msg) =&gt; {
+      const reactions = messages.filter((m) =&gt; m.reactionTo === msg.id);
+      const reactionGroups = reactions.reduce((acc, reaction) =&gt; {
+        (acc[reaction.message] ??= []).push(reaction.sender);
+        return acc;
+      }, {});
+      const originalMessage =
+            msg.replyTo != null ? findById(msg.replyTo) : null;
+      const senderColor = colorForSender(msg.sender);
+
+      const msgDiv = document.createElement(&quot;div&quot;);
+      msgDiv.className = &quot;chat-replay-msg&quot;;
+
+      const senderDiv = document.createElement(&quot;div&quot;);
+      senderDiv.className = &quot;chat-replay-sender&quot;;
+      senderDiv.style.color = senderColor;
+      senderDiv.textContent = msg.sender;
+      msgDiv.append(senderDiv);
+
+      if (originalMessage) {
+        const quoteDiv = document.createElement(&quot;div&quot;);
+        quoteDiv.className = &quot;chat-replay-quote&quot;;
+        quoteDiv.style.borderLeftColor = colorForSender(originalMessage.sender);
+
+        const quoteSenderDiv = document.createElement(&quot;div&quot;);
+        quoteSenderDiv.className = &quot;chat-replay-quote-sender&quot;;
+        quoteSenderDiv.style.color = colorForSender(originalMessage.sender);
+        quoteSenderDiv.textContent = originalMessage.sender;
+        quoteDiv.append(quoteSenderDiv);
+
+        const quoteTextDiv = document.createElement(&quot;div&quot;);
+        quoteTextDiv.className = &quot;chat-replay-quote-text&quot;;
+        quoteTextDiv.textContent = originalMessage.message;
+        quoteDiv.append(quoteTextDiv);
+
+        msgDiv.append(quoteDiv);
+      }
+
+      const textDiv = document.createElement(&quot;div&quot;);
+      textDiv.className = &quot;chat-replay-text&quot;;
+      textDiv.textContent = msg.message;
+      msgDiv.append(textDiv);
+
+      const timeSpan = document.createElement(&quot;span&quot;);
+      timeSpan.className = &quot;chat-replay-time&quot;;
+      timeSpan.textContent = msg.timestamp;
+      msgDiv.append(timeSpan);
+
+      if (Object.keys(reactionGroups).length &gt; 0) {
+        const reactionsDiv = document.createElement(&quot;div&quot;);
+        reactionsDiv.className = &quot;chat-replay-reactions&quot;;
+        Object.entries(reactionGroups).forEach(([reaction, senders]) =&gt; {
+          const pill = document.createElement(&quot;span&quot;);
+          pill.className = &quot;chat-replay-reaction&quot;;
+          pill.textContent =
+            senders.length &lt;= 4
+            ? `${reaction} ${senders.join(&quot;, &quot;)}`
+            : `${reaction} ${senders.length}`;
+          reactionsDiv.append(pill);
+        });
+        msgDiv.append(reactionsDiv);
+      }
+
+      messagesDiv.appendChild(msgDiv);
+    };
+
+    const jumpToLatestButton = document.createElement(&quot;button&quot;);
+    jumpToLatestButton.setAttribute(&quot;id&quot;, &quot;chat-replay-jump-to-latest&quot;);
+    jumpToLatestButton.type = &quot;button&quot;;
+    jumpToLatestButton.textContent = &quot;↓ New messages&quot;;
+    jumpToLatestButton.hidden = true;
+    const isNearBottom = () =&gt;
+          messagesDiv.scrollHeight -
+          messagesDiv.scrollTop -
+          messagesDiv.clientHeight &lt;
+          40;
+    let autoFollow = true;
+    messagesDiv.addEventListener(&quot;scroll&quot;, () =&gt; {
+      autoFollow = isNearBottom();
+      jumpToLatestButton.hidden = autoFollow;
+    });
+    jumpToLatestButton.addEventListener(&quot;click&quot;, () =&gt; {
+      autoFollow = true;
+      jumpToLatestButton.hidden = true;
+      messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: &quot;smooth&quot;,
+      });
+    });
+
+    let pointer = 0;
+    const catchUpTo = (currentSecond, { smooth = true } = {}) =&gt; {
+      let renderedAny = false;
+      while (pointer &lt; messages.length) {
+        const msg = messages[pointer];
+        if (msg.reactionTo != null) {
+          pointer++;
+          continue;
+        }
+        if (msg.offsetSeconds &gt; currentSecond) {
+          break;
+        }
+        renderMessage(msg);
+        renderedAny = true;
+        pointer++;
+      }
+      if (!renderedAny) {
+        return;
+      }
+      if (autoFollow) {
+        messagesDiv.scrollTo({
+          top: messagesDiv.scrollHeight,
+          behavior: smooth ? &quot;smooth&quot; : &quot;auto&quot;,
+        });
+      } else {
+        jumpToLatestButton.hidden = false;
+      }
+    };
+
+    let referenceSeconds =
+        Math.floor((messages[0]?.totalSeconds ?? 0) / 600) * 600;
+    const recomputeOffsets = () =&gt; {
+      messages.forEach((msg) =&gt; {
+        msg.offsetSeconds = msg.totalSeconds - referenceSeconds;
+      });
+    };
+    recomputeOffsets();
+
+    let lastKnownSecond = 0;
+    const replayFromStart = () =&gt; {
+      messagesDiv.replaceChildren();
+      pointer = 0;
+      catchUpTo(lastKnownSecond, { smooth: false });
+    };
+
+    const startTimeDiv = document.createElement(&quot;div&quot;);
+    startTimeDiv.setAttribute(&quot;id&quot;, startTimeId);
+    const startTimeLabel = document.createElement(&quot;label&quot;);
+    startTimeLabel.textContent = &quot;Video start: &quot;;
+    const startTimeInput = document.createElement(&quot;input&quot;);
+    startTimeInput.type = &quot;time&quot;;
+    startTimeInput.step = &quot;1&quot;;
+    startTimeInput.value = secondsToTimeString(referenceSeconds);
+    let startTimeChangeTimer;
+    startTimeInput.addEventListener(&quot;change&quot;, () =&gt; {
+      clearTimeout(startTimeChangeTimer);
+      startTimeChangeTimer = setTimeout(() =&gt; {
+        if (!startTimeInput.value) {
+          return;
+        }
+        referenceSeconds = parseTimestampToSeconds(startTimeInput.value);
+        recomputeOffsets();
+        replayFromStart();
+      }, 200);
+    });
+    startTimeLabel.append(startTimeInput);
+    startTimeDiv.append(startTimeLabel);
+
+    chatReplayDiv.append(startTimeDiv);
+    chatReplayDiv.append(messagesDiv);
+    chatReplayDiv.append(jumpToLatestButton);
+
+    let lastCheckedSecond = -1;
+    const handleMessage = (event) =&gt; {
+      if (event.origin !== &quot;https://youtube.googleapis.com&quot;) {
+        return;
+      }
+      let data;
+      try {
+        data =
+          typeof event.data === &quot;string&quot; ? JSON.parse(event.data) : event.data;
+      } catch {
+        return;
+      }
+      if (
+        data?.event !== &quot;infoDelivery&quot; ||
+          typeof data.info?.currentTime !== &quot;number&quot;
+      ) {
+        return;
+      }
+      clearTimeout(window.__chatReplayFallbackTimer);
+      const currentSecond = Math.floor(data.info.currentTime);
+      lastKnownSecond = currentSecond;
+      if (currentSecond === lastCheckedSecond) {
+        return;
+      }
+      lastCheckedSecond = currentSecond;
+      catchUpTo(currentSecond);
+    };
+    window.__chatReplayMessageListener = handleMessage;
+    window.addEventListener(&quot;message&quot;, handleMessage);
+
+    window.__chatReplayFallbackTimer = setTimeout(() =&gt; {
+      console.warn(
+        &quot;No playback updates received from the video player; rendering all chat messages.&quot;,
+      );
+      catchUpTo(Infinity, { smooth: false });
+    }, 5000);
+  };
+
+  injectStyles();
+  createInputUI();
+  const chatText = await getChatText();
+  const messages = parseChatText(chatText);
+  setupChatReplay(messages);
+})();"
+    >Zoom Chat Replay
+   </a>
+  </div>
+  <footer><p>Last updated: 2026-09-14T16:43:09-00:00</p>
    <p>Source: <a href="https://github.com/punchagan/bookmarklets">GitHub</a>
    </p>
   </footer>
