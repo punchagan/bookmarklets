@@ -37,7 +37,7 @@ let process_bookmarklet ~src_dir filename =
     in
     lines
     |> List.filteri (fun i _ -> i < non_doc_idx)
-    |> List.map (Str.replace_first (Str.regexp "/+ ") "")
+    |> List.map (Str.replace_first (Str.regexp "/+\b*") "")
     |> String.concat "\n"
   in
   let doc = Cmarkit.Doc.of_string doc_md |> Cmarkit_html.of_doc ~safe:true in
