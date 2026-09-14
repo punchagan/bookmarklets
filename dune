@@ -1,7 +1,7 @@
 (executable
  (public_name gen)
  (name gen)
- (libraries str ptime ptime.clock cmarkit tyxml))
+ (libraries str ptime ptime.clock cmarkit tyxml uri))
 
 (rule
  (alias index)

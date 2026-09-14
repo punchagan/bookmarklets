@@ -16,6 +16,6 @@
  (synopsis "A collection of bookmarklets.")
  (description
   "A collection of my bookmarklets to automate various things in the browser.")
- (depends ocaml cmarkit tyxml ptime tyxml-ppx))
+ (depends ocaml cmarkit tyxml ptime tyxml-ppx uri))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

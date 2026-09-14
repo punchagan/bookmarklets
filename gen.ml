@@ -28,6 +28,7 @@ let process_bookmarklet ~src_dir filename =
            line |> String.trim |> String.starts_with ~prefix:"//" |> not)
     |> String.concat "\n" |> String.trim |> wrap_code
   in
+  let code = code |> Uri.pct_encode in
   let doc_md =
     let non_doc_idx =
       List.find_index
