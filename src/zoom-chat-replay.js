@@ -270,7 +270,7 @@ javascript: void (async function () {
           // Message is in the format "Reacted to "<original message>" with "<reaction text>"
           // The quotes are optional! stupid shit
           const reactionMatch = message.match(
-            /Reacted to "?([\s\S]+)"? with "?(.)"?/,
+            /Reacted to "?([\s\S]+)"? with "?(.)"?/u,
           );
           if (reactionMatch) {
             originalMessage = reactionMatch[1].trim().replace(/"$/, "").trim();
