@@ -30,6 +30,29 @@ javascript: void (async function () {
       color: #075e54;
       padding: 4px 10px;
     }
+    #chat-replay-url-form {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    #chat-replay-url-form input {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 8px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #chat-replay-url-form button {
+      padding: 6px 10px;
+      font-size: 13px;
+      background: #075e54;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     #chat-replay-messages {
       overflow-y: auto;
       flex: 1;
@@ -184,6 +207,7 @@ javascript: void (async function () {
     mode: "cors",
   };
   const getChatDownloadUrl = async (url) => {
+    setStatus("Processing chat transcript URL ...");
     try {
       const response = await fetch(url, fetchParams);
       if (!response.ok) {
@@ -229,6 +253,47 @@ javascript: void (async function () {
     }
     statusDiv.innerText = "";
     return await response.text();
+  };
+
+  // Resolves with the chat transcript text: from window.chatText if already
+  // fetched, otherwise by showing a one-time URL input form in the replay
+  // UI. Once a URL is submitted, the form is removed for good.
+  const getChatText = () => {
+    if (window.chatText) {
+      return Promise.resolve(window.chatText);
+    }
+    return new Promise((resolve) => {
+      const chatReplayDiv = document.querySelector(`#${replayDivId}`);
+      const formId = "chat-replay-url-form";
+      const form = document.createElement("form");
+      form.setAttribute("id", formId);
+
+      const input = document.createElement("input");
+      input.type = "url";
+      input.placeholder = "Paste chat transcript share URL";
+      input.required = true;
+      form.append(input);
+
+      const button = document.createElement("button");
+      button.type = "submit";
+      button.textContent = "Load chat";
+      form.append(button);
+
+      chatReplayDiv.append(form);
+      input.focus();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const url = input.value.trim();
+        if (!url) {
+          return;
+        }
+        form.remove();
+        const text = await downloadChatText(url);
+        window.chatText = text;
+        resolve(text);
+      });
+    });
   };
 
   const parseChatText = (text) => {
@@ -441,12 +506,7 @@ javascript: void (async function () {
 
   injectStyles();
   createInputUI();
-  let chatText = window?.chatText || null;
-  if (!chatText) {
-    const url = prompt("Enter Chat Transcript URL");
-    chatText = await downloadChatText(url);
-    window.chatText = chatText;
-  }
+  const chatText = await getChatText();
   const messages = parseChatText(chatText);
   displayMessages(messages);
 })();
