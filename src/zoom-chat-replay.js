@@ -13,6 +13,105 @@ javascript: void (async function () {
   const replayDivId = "chat-replay";
   const statusId = "chat-replay-status";
 
+  // All static CSS for the chat replay UI lives here, in one place, and is
+  // injected into <head> once, before any DOM is built. Anything that
+  // depends on runtime layout (position/top/left/width of #chat-replay) is
+  // still set inline in createInputUI, since it can't be known up front.
+  const styles = `
+    #${replayDivId} {
+      display: flex;
+      flex-direction: column;
+      background-color: #e5ddd5;
+      overflow: hidden;
+    }
+    #${statusId} {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: #075e54;
+      padding: 4px 10px;
+    }
+    #chat-replay-messages {
+      overflow-y: auto;
+      flex: 1;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    .chat-replay-msg {
+      background: #fff;
+      border-radius: 7.5px;
+      padding: 6px 9px 8px;
+      margin-bottom: 6px;
+      max-width: 85%;
+      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+      position: relative;
+    }
+    .chat-replay-sender {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .chat-replay-quote {
+      background: rgba(0, 0, 0, 0.05);
+      border-left: 4px solid;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      font-size: 12.5px;
+      color: #667781;
+    }
+    .chat-replay-quote-sender {
+      font-weight: bold;
+      font-size: 12.5px;
+      margin-bottom: 1px;
+    }
+    .chat-replay-quote-text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .chat-replay-text {
+      font-size: 14.2px;
+      color: #111b21;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .chat-replay-time {
+      display: block;
+      text-align: right;
+      margin-top: 4px;
+      font-size: 11px;
+      color: #667781;
+    }
+    .chat-replay-reactions {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .chat-replay-reaction {
+      background: #fff;
+      border: 1px solid #e9edef;
+      border-radius: 12px;
+      padding: 1px 6px;
+      font-size: 12px;
+      box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
+    }
+  `;
+
+  const injectStyles = () => {
+    const styleId = `${replayDivId}-style`;
+    if (document.querySelector(`#${styleId}`)) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.setAttribute("id", styleId);
+    style.textContent = styles;
+    document.head.append(style);
+  };
+
   const setStatus = (message) => {
     let statusDiv = document.querySelector(`#${statusId}`);
     if (!statusDiv) {
@@ -53,8 +152,6 @@ javascript: void (async function () {
     chatReplayDiv.style.top = siblingEl.offsetTop + "px";
     chatReplayDiv.style.left =
       siblingEl.offsetLeft + siblingEl.clientWidth + "px";
-    chatReplayDiv.style.backgroundColor = "#e5ddd5";
-    chatReplayDiv.style.overflow = "hidden";
 
     // Create status div
     let statusDiv = document.querySelector(`#${statusId}`);
@@ -242,37 +339,107 @@ javascript: void (async function () {
     }
     const messagesDiv = document.createElement("div");
     messagesDiv.setAttribute("id", messagesId);
-    messagesDiv.style.cssText = `
-      overflow-y: auto;
-      height: 100%;
-      padding: 10px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-    `;
+
+    // Deterministically map each sender's name to one of the colors, so the
+    // same sender always gets the same color.
+    const senderColors = [
+      "#e542a3",
+      "#d3691e",
+      "#4a8cca",
+      "#6b7fd7",
+      "#5ab55e",
+      "#c4548a",
+      "#9c6fd6",
+      "#3fa79b",
+      "#e0793e",
+      "#5f9ea0",
+    ];
+    const colorForSender = (sender) => {
+      let hash = 0;
+      for (let i = 0; i < sender.length; i++) {
+        hash = (hash << 5) - hash + sender.charCodeAt(i);
+        hash |= 0;
+      }
+      return senderColors[Math.abs(hash) % senderColors.length];
+    };
+
+    const findById = (id) => messages.find((m) => m.id === id);
+
     messages.forEach((msg) => {
-      if (msg.reactionTo) {
+      if (msg.reactionTo != null) {
         return; // Skip reactions, they will be displayed with the original message
       }
-      const reactions = messages
-        .filter((m) => m.reactionTo === msg.id)
-        ?.map((m) => m.message);
-      const reactionCounts = reactions.reduce((acc, reaction) => {
-        acc[reaction] = (acc[reaction] || 0) + 1;
+      const reactions = messages.filter((m) => m.reactionTo === msg.id);
+      const reactionGroups = reactions.reduce((acc, reaction) => {
+        (acc[reaction.message] ??= []).push(reaction.sender);
         return acc;
       }, {});
-      const originalMessage = msg.replyTo ? messages[msg.replyTo] : null;
+      const originalMessage =
+        msg.replyTo != null ? findById(msg.replyTo) : null;
+      const senderColor = colorForSender(msg.sender);
 
       // Display the message with timestamp, sender, and message text. Show
       // truncated original message if it's a reply (with sender info) and any
       // reactions we found to the message.
-      //
-      // TODO:
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "chat-replay-msg";
+
+      const senderDiv = document.createElement("div");
+      senderDiv.className = "chat-replay-sender";
+      senderDiv.style.color = senderColor;
+      senderDiv.textContent = msg.sender;
+      msgDiv.append(senderDiv);
+
+      if (originalMessage) {
+        const quoteDiv = document.createElement("div");
+        quoteDiv.className = "chat-replay-quote";
+        quoteDiv.style.borderLeftColor = colorForSender(originalMessage.sender);
+
+        const quoteSenderDiv = document.createElement("div");
+        quoteSenderDiv.className = "chat-replay-quote-sender";
+        quoteSenderDiv.style.color = colorForSender(originalMessage.sender);
+        quoteSenderDiv.textContent = originalMessage.sender;
+        quoteDiv.append(quoteSenderDiv);
+
+        const quoteTextDiv = document.createElement("div");
+        quoteTextDiv.className = "chat-replay-quote-text";
+        quoteTextDiv.textContent = originalMessage.message;
+        quoteDiv.append(quoteTextDiv);
+
+        msgDiv.append(quoteDiv);
+      }
+
+      const textDiv = document.createElement("div");
+      textDiv.className = "chat-replay-text";
+      textDiv.textContent = msg.message;
+      msgDiv.append(textDiv);
+
+      const timeSpan = document.createElement("span");
+      timeSpan.className = "chat-replay-time";
+      timeSpan.textContent = msg.timestamp;
+      msgDiv.append(timeSpan);
+
+      if (Object.keys(reactionGroups).length > 0) {
+        const reactionsDiv = document.createElement("div");
+        reactionsDiv.className = "chat-replay-reactions";
+        Object.entries(reactionGroups).forEach(([reaction, senders]) => {
+          const pill = document.createElement("span");
+          pill.className = "chat-replay-reaction";
+          pill.textContent =
+            senders.length <= 4
+              ? `${reaction} ${senders.join(", ")}`
+              : `${reaction} ${senders.length}`;
+          reactionsDiv.append(pill);
+        });
+        msgDiv.append(reactionsDiv);
+      }
 
       messagesDiv.appendChild(msgDiv);
     });
     chatReplayDiv.appendChild(messagesDiv);
   };
 
+  injectStyles();
   createInputUI();
   let chatText = window?.chatText || null;
   if (!chatText) {
