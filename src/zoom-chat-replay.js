@@ -8,6 +8,23 @@
 //
 // NOTE: This has only been tested with Zoom transcripts with English language
 // setting in Zoom. Other languages are not supported.
+//
+// #### Usage:
+//
+// 0. Install the bookmarklet. (See instructions at the top of this page).
+//
+// 1. Copy the share URL of the Zoom Chat Transcript that has been uploaded to
+// Google Drive. NOTE: The transcript .txt file needs to be accessible to
+// anyone with the link for this bookmarklet to be able to download it.
+
+// 2. Start playing the video uploaded to Google Drive
+
+// 3. Click on this bookmarklet and paste the share URL of the Zoom Chat
+// Transcript in the newly created chat replay UI.
+
+// 4. The video recording start time is "guessed" based on the timestamps in
+// the transcript file. But, you can edit the start time in the UI to adjust
+// the sync.
 
 javascript: void (async function () {
   const replayDivId = "chat-replay";
