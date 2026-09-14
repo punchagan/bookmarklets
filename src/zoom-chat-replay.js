@@ -53,11 +53,41 @@ javascript: void (async function () {
       border-radius: 4px;
       cursor: pointer;
     }
+    #chat-replay-start-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      font-family: Arial, sans-serif;
+      font-size: 12.5px;
+      color: #075e54;
+    }
+    #chat-replay-start-time input {
+      font-size: 12.5px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
     #chat-replay-messages {
       overflow-y: auto;
       flex: 1;
       padding: 10px;
       font-family: Arial, sans-serif;
+    }
+    #chat-replay-jump-to-latest {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #075e54;
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-family: Arial, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
     .chat-replay-msg {
       background: #fff;
@@ -296,6 +326,23 @@ javascript: void (async function () {
     });
   };
 
+  // Chat timestamps and the video-start-time input are both plain
+  // "HH:MM:SS" wall-clock strings; these convert between that and seconds
+  // (from midnight) so they can be compared against video playback seconds.
+  const parseTimestampToSeconds = (timestamp) => {
+    const [hours, minutes, seconds] = timestamp.split(":").map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  const secondsToTimeString = (totalSeconds) => {
+    const normalized = ((totalSeconds % 86400) + 86400) % 86400;
+    const hours = Math.floor(normalized / 3600);
+    const minutes = Math.floor((normalized % 3600) / 60);
+    const seconds = Math.floor(normalized % 60);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
   const parseChatText = (text) => {
     setStatus("Parsing chat transcript ...");
     // Split the text into lines starting at timestamps
@@ -352,6 +399,7 @@ javascript: void (async function () {
         const parsedMessage = {
           id: idx,
           timestamp,
+          totalSeconds: parseTimestampToSeconds(timestamp),
           sender,
           message: message.trim().replace(/\r/g, "\n"),
           replyTo: isReply
@@ -391,19 +439,40 @@ javascript: void (async function () {
     return messages;
   };
 
-  const displayMessages = (messages) => {
+  // Renders messages progressively, in sync with video playback, instead of
+  // all at once: Drive plays this video through an internal, YouTube-backed
+  // iframe, which broadcasts periodic playback state via postMessage (see
+  // https://developer.chrome.com/docs/extensions/mv3/messaging for the
+  // general mechanism; the message shape itself is undocumented, learned by
+  // eavesdropping on `window.addEventListener("message", console.log)`
+  // while using the Drive player). Its `infoDelivery` messages carry
+  // `info.currentTime` in video-playback seconds. Chat timestamps are
+  // wall-clock "HH:MM:SS" strings, so a reference time (default: the
+  // 10-minute mark at or before the first message, editable in the UI) maps
+  // each message to a playback-second offset; messages are revealed as
+  // `currentTime` passes their offset. Reactions are folded into their
+  // target message's bubble using every reaction in the transcript,
+  // regardless of whether its own timestamp has been reached yet - simpler
+  // than live-updating already-rendered bubbles, at the cost of not
+  // simulating reactions arriving late.
+  const setupChatReplay = (messages) => {
     const messagesId = "chat-replay-messages";
-    const messagesExist = document.querySelector(`#${messagesId}`);
-    if (messagesExist) {
-      messagesExist.remove();
-    }
+    const startTimeId = "chat-replay-start-time";
     const chatReplayDiv = document.querySelector(`#${replayDivId}`);
     if (!chatReplayDiv) {
       console.error("Chat replay div not found");
       return;
     }
-    const messagesDiv = document.createElement("div");
-    messagesDiv.setAttribute("id", messagesId);
+
+    // Fresh start on every invocation: drop any previous UI/listener state
+    // left behind by a prior run of this bookmarklet.
+    document.querySelector(`#${startTimeId}`)?.remove();
+    document.querySelector(`#${messagesId}`)?.remove();
+    document.querySelector("#chat-replay-jump-to-latest")?.remove();
+    if (window.__chatReplayMessageListener) {
+      window.removeEventListener("message", window.__chatReplayMessageListener);
+    }
+    clearTimeout(window.__chatReplayFallbackTimer);
 
     // Deterministically map each sender's name to one of the colors, so the
     // same sender always gets the same color.
@@ -427,13 +496,12 @@ javascript: void (async function () {
       }
       return senderColors[Math.abs(hash) % senderColors.length];
     };
-
     const findById = (id) => messages.find((m) => m.id === id);
 
-    messages.forEach((msg) => {
-      if (msg.reactionTo != null) {
-        return; // Skip reactions, they will be displayed with the original message
-      }
+    const messagesDiv = document.createElement("div");
+    messagesDiv.setAttribute("id", messagesId);
+
+    const renderMessage = (msg) => {
       const reactions = messages.filter((m) => m.reactionTo === msg.id);
       const reactionGroups = reactions.reduce((acc, reaction) => {
         (acc[reaction.message] ??= []).push(reaction.sender);
@@ -500,13 +568,163 @@ javascript: void (async function () {
       }
 
       messagesDiv.appendChild(msgDiv);
+    };
+
+    // Newly revealed messages auto-scroll into view, like a live chat -
+    // but only while the user is already near the bottom. If they've
+    // scrolled up to read history, leave the view alone and show a "jump
+    // to latest" pill instead of yanking them back down.
+    const jumpToLatestButton = document.createElement("button");
+    jumpToLatestButton.setAttribute("id", "chat-replay-jump-to-latest");
+    jumpToLatestButton.type = "button";
+    jumpToLatestButton.textContent = "↓ New messages";
+    jumpToLatestButton.hidden = true;
+    const isNearBottom = () =>
+      messagesDiv.scrollHeight -
+        messagesDiv.scrollTop -
+        messagesDiv.clientHeight <
+      40;
+    let autoFollow = true;
+    messagesDiv.addEventListener("scroll", () => {
+      autoFollow = isNearBottom();
+      jumpToLatestButton.hidden = autoFollow;
     });
-    chatReplayDiv.appendChild(messagesDiv);
+    jumpToLatestButton.addEventListener("click", () => {
+      autoFollow = true;
+      jumpToLatestButton.hidden = true;
+      messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+
+    // `pointer` tracks how far into `messages` we've rendered. Messages
+    // only ever get added, never removed, so scrolling up to see history
+    // is unaffected by how much of the transcript has been revealed yet.
+    // `smooth` is false for bulk catch-ups (a reference-time edit, or the
+    // no-playback-updates fallback) so a big backfill snaps into place
+    // instead of visibly scrolling through everything in between.
+    let pointer = 0;
+    const catchUpTo = (currentSecond, { smooth = true } = {}) => {
+      let renderedAny = false;
+      while (pointer < messages.length) {
+        const msg = messages[pointer];
+        if (msg.reactionTo != null) {
+          // Reactions are folded into their target's bubble above, never
+          // rendered on their own; skip past them regardless of timestamp.
+          pointer++;
+          continue;
+        }
+        if (msg.offsetSeconds > currentSecond) {
+          break;
+        }
+        renderMessage(msg);
+        renderedAny = true;
+        pointer++;
+      }
+      if (!renderedAny) {
+        return;
+      }
+      if (autoFollow) {
+        messagesDiv.scrollTo({
+          top: messagesDiv.scrollHeight,
+          behavior: smooth ? "smooth" : "auto",
+        });
+      } else {
+        jumpToLatestButton.hidden = false;
+      }
+    };
+
+    let referenceSeconds =
+      Math.floor((messages[0]?.totalSeconds ?? 0) / 600) * 600;
+    const recomputeOffsets = () => {
+      messages.forEach((msg) => {
+        msg.offsetSeconds = msg.totalSeconds - referenceSeconds;
+      });
+    };
+    recomputeOffsets();
+
+    let lastKnownSecond = 0;
+    const replayFromStart = () => {
+      messagesDiv.replaceChildren();
+      pointer = 0;
+      catchUpTo(lastKnownSecond, { smooth: false });
+    };
+
+    const startTimeDiv = document.createElement("div");
+    startTimeDiv.setAttribute("id", startTimeId);
+    const startTimeLabel = document.createElement("label");
+    startTimeLabel.textContent = "Video start: ";
+    const startTimeInput = document.createElement("input");
+    startTimeInput.type = "time";
+    startTimeInput.step = "1";
+    startTimeInput.value = secondsToTimeString(referenceSeconds);
+    let startTimeChangeTimer;
+    startTimeInput.addEventListener("change", () => {
+      clearTimeout(startTimeChangeTimer);
+      startTimeChangeTimer = setTimeout(() => {
+        if (!startTimeInput.value) {
+          return;
+        }
+        referenceSeconds = parseTimestampToSeconds(startTimeInput.value);
+        recomputeOffsets();
+        replayFromStart();
+      }, 200);
+    });
+    startTimeLabel.append(startTimeInput);
+    startTimeDiv.append(startTimeLabel);
+
+    chatReplayDiv.append(startTimeDiv);
+    chatReplayDiv.append(messagesDiv);
+    chatReplayDiv.append(jumpToLatestButton);
+
+    // The player broadcasts an `infoDelivery` message even before playback
+    // starts, so the first one received also handles the case where the
+    // bookmarklet is run mid-video. Messages only have second resolution,
+    // so dedupe on the floored second rather than acting on every message.
+    let lastCheckedSecond = -1;
+    const handleMessage = (event) => {
+      if (event.origin !== "https://youtube.googleapis.com") {
+        return;
+      }
+      let data;
+      try {
+        data =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+      } catch {
+        return;
+      }
+      if (
+        data?.event !== "infoDelivery" ||
+        typeof data.info?.currentTime !== "number"
+      ) {
+        return;
+      }
+      clearTimeout(window.__chatReplayFallbackTimer);
+      const currentSecond = Math.floor(data.info.currentTime);
+      lastKnownSecond = currentSecond;
+      if (currentSecond === lastCheckedSecond) {
+        return;
+      }
+      lastCheckedSecond = currentSecond;
+      catchUpTo(currentSecond);
+    };
+    window.__chatReplayMessageListener = handleMessage;
+    window.addEventListener("message", handleMessage);
+
+    // If we never hear from the player (e.g. it isn't YouTube-backed, or
+    // the message format has changed), don't leave the chat empty forever.
+    window.__chatReplayFallbackTimer = setTimeout(() => {
+      console.warn(
+        "No playback updates received from the video player; rendering all chat messages.",
+      );
+      catchUpTo(Infinity, { smooth: false });
+    }, 5000);
   };
 
   injectStyles();
   createInputUI();
   const chatText = await getChatText();
   const messages = parseChatText(chatText);
-  displayMessages(messages);
+  setupChatReplay(messages);
 })();
