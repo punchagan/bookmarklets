@@ -381,6 +381,7 @@ javascript: void (async function () {
         let originalMessage = null;
         const isReply = message.startsWith("Replying to");
         const isReaction = message.startsWith("Reacted to");
+        const isReactionRemoval = message.startsWith("Removed a");
         if (isReply) {
           // Find the original message and the actual reply text
           // Message is in the format "Replying to "<original message>"\n\n<reply text>"
@@ -410,6 +411,21 @@ javascript: void (async function () {
           } else {
             console.warn(`Failed to parse reaction message: ${message}`);
           }
+        } else if (isReactionRemoval) {
+          // Find the original message and the removed reaction's emoji.
+          // Message is in the format 'Removed a <emoji> reaction from "<original
+          // message>"' - but Zoom sometimes drops the word "reaction".
+          const removalMatch = message.match(
+            /Removed a "?([\s\S]+?)"? (?:reaction )?from "?([\s\S]+)"?/u,
+          );
+          if (removalMatch) {
+            message = removalMatch[1];
+            originalMessage = removalMatch[2].trim().replace(/"$/, "").trim();
+          } else {
+            console.warn(
+              `Failed to parse reaction removal message: ${message}`,
+            );
+          }
         }
         const originalMessageStripped = originalMessage
           ?.replace(/\.\.\.$/, "")
@@ -429,23 +445,29 @@ javascript: void (async function () {
                   : msg.message === originalMessage,
               )?.id
             : null,
-          reactionTo: isReaction
-            ? messages.find((msg) =>
-                originalTruncated
-                  ? msg.message.startsWith(originalMessageStripped)
-                  : msg.message === originalMessage,
-              )?.id
-            : null,
+          reactionTo:
+            isReaction || isReactionRemoval
+              ? messages.find((msg) =>
+                  originalTruncated
+                    ? msg.message.startsWith(originalMessageStripped)
+                    : msg.message === originalMessage,
+                )?.id
+              : null,
+          reactionRemoved: isReactionRemoval,
         };
         // Try truncating the original message and search again. Some
         // characters seem to get bungled up in the Zoom transcripts in quoted
         // messages.
-        if (isReaction && !parsedMessage.reactionTo) {
+        if (
+          (isReaction || isReactionRemoval) &&
+          !parsedMessage.reactionTo &&
+          originalMessage
+        ) {
           parsedMessage.reactionTo = messages.find((msg) =>
             msg.message.startsWith(originalMessage.slice(0, 40).trim()),
           )?.id;
         }
-        if (isReply && !parsedMessage.replyTo) {
+        if (isReply && !parsedMessage.replyTo && originalMessage) {
           parsedMessage.replyTo = messages.find((msg) =>
             msg.message.startsWith(originalMessage.slice(0, 40).trim()),
           )?.id;
@@ -522,11 +544,26 @@ javascript: void (async function () {
     messagesDiv.setAttribute("id", messagesId);
 
     const renderMessage = (msg) => {
-      const reactions = messages.filter((m) => m.reactionTo === msg.id);
-      const reactionGroups = reactions.reduce((acc, reaction) => {
-        (acc[reaction.message] ??= []).push(reaction.sender);
-        return acc;
-      }, {});
+      // `messages` is in chronological order, so replaying each reaction
+      // event (add or remove) for this message and keeping only the ones
+      // still active at the end gives the net reactions - a "Removed a X
+      // reaction" event cancels the matching earlier addition instead of
+      // being counted as a reaction of its own.
+      const activeReactions = new Map();
+      messages
+        .filter((m) => m.reactionTo === msg.id)
+        .forEach((reaction) => {
+          const key = `${reaction.sender}-${reaction.message}`;
+          if (reaction.reactionRemoved) {
+            activeReactions.delete(key);
+          } else {
+            activeReactions.set(key, reaction);
+          }
+        });
+      const reactionGroups = {};
+      activeReactions.forEach((reaction) => {
+        (reactionGroups[reaction.message] ??= []).push(reaction.sender);
+      });
       const originalMessage =
         msg.replyTo != null ? findById(msg.replyTo) : null;
       const senderColor = colorForSender(msg.sender);
