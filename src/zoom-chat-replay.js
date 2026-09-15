@@ -251,17 +251,37 @@ javascript: void (async function () {
       parentEl.append(chatReplayDiv);
     }
     chatReplayDiv.style.cssText = siblingEl.style.cssText;
+    // The copied cssText can carry over a margin that was fine for the
+    // video but isn't meant for us: an absolutely positioned box's actual
+    // rendered position is `top`/`left` PLUS any margin, so a stray margin
+    // here would silently shift the panel away from what we compute below.
+    chatReplayDiv.style.margin = "0";
 
-    // Compute width
-    const width = Math.min(
-      (document.documentElement.clientWidth - siblingEl.clientWidth - 50) / 2,
-      450,
+    // The video is centered on its own, but just placing the chat panel
+    // against its existing right edge only eats into the space that was
+    // already to the video's right, leaving whatever was to its left
+    // unused - so the combined pair ends up off-center. Instead, size the
+    // chat panel first, then nudge the video's own left position (the same
+    // `left` Drive already positions it with, hence being safe to
+    // overwrite) so the video + chat pair together are centered, reclaiming
+    // that unused left margin as extra room for the chat panel.
+    const minMargin = 20;
+    const documentWidth = document.documentElement.clientWidth;
+    // offsetWidth (not clientWidth) so a border on the video wrapper, if
+    // any, is included - otherwise the chat panel's computed left edge
+    // lands slightly inside the video's actual visual right edge.
+    const videoWidth = siblingEl.offsetWidth;
+    const width = Math.max(
+      0,
+      Math.min(documentWidth - videoWidth - 2 * minMargin, 450),
     );
+    const pairLeft = (documentWidth - (videoWidth + width)) / 2;
+
+    siblingEl.style.left = `${pairLeft}px`;
     chatReplayDiv.style.width = `${width}px`;
     chatReplayDiv.style.position = "absolute";
     chatReplayDiv.style.top = siblingEl.offsetTop + "px";
-    chatReplayDiv.style.left =
-      siblingEl.offsetLeft + siblingEl.clientWidth + "px";
+    chatReplayDiv.style.left = `${pairLeft + videoWidth}px`;
 
     // Create status div
     let statusDiv = document.querySelector(`#${statusId}`);
