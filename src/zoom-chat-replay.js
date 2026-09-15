@@ -70,20 +70,50 @@ javascript: void (async function () {
       border-radius: 4px;
       cursor: pointer;
     }
-    #chat-replay-start-time {
+    #chat-replay-controls {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
+      gap: 6px 10px;
       padding: 6px 10px;
       font-family: Arial, sans-serif;
       font-size: 12.5px;
       color: #075e54;
     }
+    #chat-replay-start-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
     #chat-replay-start-time input {
+      box-sizing: border-box;
+      height: 24px;
       font-size: 12.5px;
       padding: 2px 4px;
       border: 1px solid #ccc;
       border-radius: 4px;
+    }
+    #chat-replay-search-message {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 140px;
+    }
+    #chat-replay-search-message input {
+      box-sizing: border-box;
+      height: 24px;
+      flex: 1;
+      min-width: 0;
+      font-size: 12.5px;
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #chat-replay-search-message span {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     #chat-replay-messages {
       overflow-y: auto;
@@ -573,6 +603,7 @@ javascript: void (async function () {
       // reactions we found to the message.
       const msgDiv = document.createElement("div");
       msgDiv.className = "chat-replay-msg";
+      msgDiv.setAttribute("data-id", msg.id);
 
       const senderDiv = document.createElement("div");
       senderDiv.className = "chat-replay-sender";
@@ -682,6 +713,7 @@ javascript: void (async function () {
       if (!renderedAny) {
         return;
       }
+      applySearchFilter();
       if (autoFollow) {
         messagesDiv.scrollTo({
           top: messagesDiv.scrollHeight,
@@ -731,7 +763,89 @@ javascript: void (async function () {
     startTimeLabel.append(startTimeInput);
     startTimeDiv.append(startTimeLabel);
 
-    chatReplayDiv.append(startTimeDiv);
+    // `searchQuery` is tracked outside the input handler so both playback
+    // (via `catchUpTo`, as new messages get revealed) and a start-time edit
+    // (via `replayFromStart`, which rebuilds the DOM from scratch) can keep
+    // the filter in sync with whatever the user last searched for, without
+    // needing to re-type it.
+    let searchQuery = "";
+    const searchResultsSpan = document.createElement("span");
+
+    // Hides every rendered message that doesn't match `searchQuery` instead
+    // of just highlighting matches, so the list is actually scannable.
+    // Only the initial search (typing, or a fresh set of matches after a
+    // reference-time edit) scrolls to the first match - reapplying the
+    // filter as more messages get revealed during playback must not keep
+    // yanking the view back to it.
+    const applySearchFilter = ({ scrollToFirst = false } = {}) => {
+      const msgDivs = messagesDiv.querySelectorAll(".chat-replay-msg");
+      if (!searchQuery) {
+        msgDivs.forEach((msgDiv) => (msgDiv.hidden = false));
+        searchResultsSpan.textContent = "";
+        return;
+      }
+      // Reaction entries never get their own bubble, so they can never
+      // match - exclude them from matching entirely.
+      const matchingIds = new Set(
+        messages
+          .filter(
+            (msg) =>
+              msg.reactionTo == null &&
+              (msg.message.toLowerCase().includes(searchQuery) ||
+                msg.sender.toLowerCase().includes(searchQuery)),
+          )
+          .map((msg) => msg.id),
+      );
+      let firstMatch = null;
+      let renderedMatchCount = 0;
+      msgDivs.forEach((msgDiv) => {
+        const msgId = Number(msgDiv.dataset.id);
+        const isMatch = matchingIds.has(msgId);
+        msgDiv.hidden = !isMatch;
+        if (isMatch) {
+          renderedMatchCount++;
+          firstMatch ??= msgDiv;
+        }
+      });
+      if (renderedMatchCount > 0) {
+        searchResultsSpan.textContent = `${renderedMatchCount} match${
+          renderedMatchCount === 1 ? "" : "es"
+        }`;
+      } else if (matchingIds.size > 0) {
+        // Matches exist, but only later in the transcript than playback
+        // has reached so far - say so instead of looking broken.
+        searchResultsSpan.textContent = "Matches later in the chat";
+      } else {
+        searchResultsSpan.textContent = "No matches";
+      }
+      if (scrollToFirst && firstMatch) {
+        firstMatch.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+
+    const searchMessageDiv = document.createElement("div");
+    searchMessageDiv.setAttribute("id", "chat-replay-search-message");
+    const searchMessageInput = document.createElement("input");
+    searchMessageInput.type = "text";
+    searchMessageInput.placeholder = "Search messages";
+    let searchDebounceTimer;
+    searchMessageInput.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        searchQuery = searchMessageInput.value.trim().toLowerCase();
+        applySearchFilter({ scrollToFirst: true });
+      }, 200);
+    });
+    searchMessageDiv.append(searchMessageInput);
+    searchMessageDiv.append(searchResultsSpan);
+
+    const controlsDiv = document.createElement("div");
+    controlsDiv.setAttribute("id", "chat-replay-controls");
+
+    controlsDiv.append(startTimeDiv);
+    controlsDiv.append(searchMessageDiv);
+
+    chatReplayDiv.append(controlsDiv);
     chatReplayDiv.append(messagesDiv);
     chatReplayDiv.append(jumpToLatestButton);
 
