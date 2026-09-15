@@ -96,24 +96,22 @@ javascript: void (async function () {
     }
     #chat-replay-search-message {
       display: flex;
-      align-items: center;
-      gap: 6px;
+      flex-direction: column;
+      gap: 2px;
       flex: 1;
       min-width: 140px;
     }
     #chat-replay-search-message input {
       box-sizing: border-box;
       height: 24px;
-      flex: 1;
-      min-width: 0;
+      width: 100%;
       font-size: 12.5px;
       padding: 2px 4px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
     #chat-replay-search-message span {
-      flex-shrink: 0;
-      white-space: nowrap;
+      font-size: 11px;
     }
     #chat-replay-show-all {
       flex-shrink: 0;
@@ -816,14 +814,23 @@ javascript: void (async function () {
           firstMatch ??= msgDiv;
         }
       });
+      // `matchingIds` covers the whole transcript, but only messages
+      // playback has already reached are actually rendered and hideable -
+      // the gap between the two is matches still waiting later in the chat.
+      const notYetShownCount = matchingIds.size - renderedMatchCount;
       if (renderedMatchCount > 0) {
         searchResultsSpan.textContent = `${renderedMatchCount} match${
           renderedMatchCount === 1 ? "" : "es"
         }`;
+        if (notYetShownCount > 0) {
+          searchResultsSpan.textContent += ` (+${notYetShownCount} more later)`;
+        }
       } else if (matchingIds.size > 0) {
         // Matches exist, but only later in the transcript than playback
         // has reached so far - say so instead of looking broken.
-        searchResultsSpan.textContent = "Matches later in the chat";
+        searchResultsSpan.textContent = `${matchingIds.size} match${
+          matchingIds.size === 1 ? "" : "es"
+        } later`;
       } else {
         searchResultsSpan.textContent = "No matches";
       }
