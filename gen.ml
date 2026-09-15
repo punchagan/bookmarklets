@@ -23,8 +23,6 @@ let process_bookmarklet ~src_dir filename =
   let code =
     lines
     |> List.filter (fun line ->
-           (* FIXME: It would be nice to remove comments at the end of lines,
-              since they break the page generation *)
            line |> String.trim |> String.starts_with ~prefix:"//" |> not)
     |> String.concat "\n" |> String.trim |> wrap_code
   in
