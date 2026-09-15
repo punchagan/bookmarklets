@@ -441,7 +441,7 @@ javascript: void (async function () {
           // Message is in the format "Reacted to "<original message>" with "<reaction text>"
           // The quotes are optional! stupid shit
           const reactionMatch = message.match(
-            /Reacted to "?([\s\S]+)"? with "?(.)"?/u,
+            /Reacted to "?([\s\S]+)"? with "?(.+?)"?$/u,
           );
           if (reactionMatch) {
             originalMessage = reactionMatch[1].trim().replace(/"$/, "").trim();
@@ -454,7 +454,7 @@ javascript: void (async function () {
           // Message is in the format 'Removed a <emoji> reaction from "<original
           // message>"' - but Zoom sometimes drops the word "reaction".
           const removalMatch = message.match(
-            /Removed a "?([\s\S]+?)"? (?:reaction )?from "?([\s\S]+)"?/u,
+            /Removed a "?(.+?)"? (?:reaction )?from "?([\s\S]+)"?/u,
           );
           if (removalMatch) {
             message = removalMatch[1];
