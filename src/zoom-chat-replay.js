@@ -215,8 +215,10 @@ javascript: void (async function () {
     chatReplayDiv.style.cssText = siblingEl.style.cssText;
 
     // Compute width
-    const width =
-      (document.documentElement.clientWidth - siblingEl.clientWidth - 50) / 2;
+    const width = Math.min(
+      (document.documentElement.clientWidth - siblingEl.clientWidth - 50) / 2,
+      450,
+    );
     chatReplayDiv.style.width = `${width}px`;
     chatReplayDiv.style.position = "absolute";
     chatReplayDiv.style.top = siblingEl.offsetTop + "px";
