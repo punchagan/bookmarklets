@@ -163,6 +163,7 @@ javascript: void (async function () {
     }
     .chat-replay-reaction {
       background: #fff;
+      color: #111b21;
       border: 1px solid #e9edef;
       border-radius: 12px;
       padding: 1px 6px;
