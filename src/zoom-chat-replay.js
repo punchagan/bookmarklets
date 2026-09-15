@@ -115,6 +115,16 @@ javascript: void (async function () {
       flex-shrink: 0;
       white-space: nowrap;
     }
+    #chat-replay-show-all {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    #chat-replay-show-all label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
     #chat-replay-messages {
       overflow-y: auto;
       flex: 1;
@@ -538,13 +548,12 @@ javascript: void (async function () {
 
     // Fresh start on every invocation: drop any previous UI/listener state
     // left behind by a prior run of this bookmarklet.
-    document.querySelector(`#${startTimeId}`)?.remove();
+    document.querySelector("#chat-replay-controls")?.remove();
     document.querySelector(`#${messagesId}`)?.remove();
     document.querySelector("#chat-replay-jump-to-latest")?.remove();
     if (window.__chatReplayMessageListener) {
       window.removeEventListener("message", window.__chatReplayMessageListener);
     }
-    clearTimeout(window.__chatReplayFallbackTimer);
 
     // Deterministically map each sender's name to one of the colors, so the
     // same sender always gets the same color.
@@ -839,11 +848,32 @@ javascript: void (async function () {
     searchMessageDiv.append(searchMessageInput);
     searchMessageDiv.append(searchResultsSpan);
 
+    // Lets the user switch between the default synced-to-playback view and
+    // seeing the whole transcript at once - useful both as a general
+    // preference (skim everything, then watch) and as a manual fallback if
+    // the player never broadcasts playback updates (e.g. it isn't
+    // YouTube-backed), instead of guessing at a timeout for that.
+    const showAllDiv = document.createElement("div");
+    showAllDiv.setAttribute("id", "chat-replay-show-all");
+    const showAllLabel = document.createElement("label");
+    const showAllInput = document.createElement("input");
+    showAllInput.type = "checkbox";
+    showAllInput.addEventListener("change", () => {
+      if (showAllInput.checked) {
+        catchUpTo(Infinity, { smooth: false });
+      } else {
+        replayFromStart();
+      }
+    });
+    showAllLabel.append(showAllInput, " Show all messages");
+    showAllDiv.append(showAllLabel);
+
     const controlsDiv = document.createElement("div");
     controlsDiv.setAttribute("id", "chat-replay-controls");
 
     controlsDiv.append(startTimeDiv);
     controlsDiv.append(searchMessageDiv);
+    controlsDiv.append(showAllDiv);
 
     chatReplayDiv.append(controlsDiv);
     chatReplayDiv.append(messagesDiv);
@@ -871,7 +901,6 @@ javascript: void (async function () {
       ) {
         return;
       }
-      clearTimeout(window.__chatReplayFallbackTimer);
       const currentSecond = Math.floor(data.info.currentTime);
       lastKnownSecond = currentSecond;
       if (currentSecond === lastCheckedSecond) {
@@ -882,15 +911,6 @@ javascript: void (async function () {
     };
     window.__chatReplayMessageListener = handleMessage;
     window.addEventListener("message", handleMessage);
-
-    // If we never hear from the player (e.g. it isn't YouTube-backed, or
-    // the message format has changed), don't leave the chat empty forever.
-    window.__chatReplayFallbackTimer = setTimeout(() => {
-      console.warn(
-        "No playback updates received from the video player; rendering all chat messages.",
-      );
-      catchUpTo(Infinity, { smooth: false });
-    }, 5000);
   };
 
   injectStyles();
