@@ -149,7 +149,6 @@ javascript: void (async function () {
       border-radius: 7.5px;
       padding: 6px 9px 8px;
       margin-bottom: 6px;
-      max-width: 85%;
       box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
       position: relative;
     }
